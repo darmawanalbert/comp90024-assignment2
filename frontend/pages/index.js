@@ -11,6 +11,8 @@ import React from 'react';
 import Head from 'next/head';
 import { Heading } from '@chakra-ui/react';
 
+import { Header } from '../components/index';
+
 export default function Home() {
     return (
         <div>
@@ -18,7 +20,10 @@ export default function Home() {
                 <title>COMP90024 - Home</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <Heading>Welcome to Home Page!</Heading>
+            <main>
+                <Header />
+                <Heading>Welcome to Home Page!</Heading>
+            </main>
         </div>
     );
 }
