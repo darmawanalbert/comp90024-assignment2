@@ -11,6 +11,8 @@ This is a monorepo for COMP90024 - Assignment 2.
 
 ## Directory Structure
 
-|- frontend
-|- harvester
-|- ansible
+```js
+|-- frontend // Web Application for Data Visualisation
+|-- harvester // Backend Services to gather Twitter data
+|-- deployment // Ansible Playbook
+```
