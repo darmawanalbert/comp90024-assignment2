@@ -7,16 +7,12 @@ Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
 Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 */
 
-import React from 'react';
-import { ChakraProvider } from '@chakra-ui/react';
-import theme from '../utils/theme';
+import { extendTheme } from '@chakra-ui/react';
 
-function MyApp({ Component, pageProps }) {
-    return (
-        <ChakraProvider theme={theme}>
-            <Component {...pageProps} />
-        </ChakraProvider>
-    );
-}
+const config = {
+    initialColorMode: 'dark',
+    useSystemColorMode: false,
+};
 
-export default MyApp;
+const theme = extendTheme({ config });
+export default theme;
