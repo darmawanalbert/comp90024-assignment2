@@ -1,0 +1,10 @@
+clouds:
+  comp90024:
+    region_name: Melbourne
+    auth:
+      username: 'wildananugrah.putra@student.unimelb.edu.au'
+      password: 'NWNmM2I1YjRkZTlhMzUz'
+      project_name: 'unimelb-comp90024-2021-grp-01'
+      auth_url: 'https://keystone.rc.nectar.org.au:5000/v3/'
+      user_domain_name: default
+      project_domain_name: Default
