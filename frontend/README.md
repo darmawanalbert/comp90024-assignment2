@@ -22,3 +22,9 @@ yarn dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## Production Build
+
+We are using Docker container for production build.
+
+1. Get [Docker](https://docs.docker.com/get-docker/)
+2. Build the Docker image by running: `docker build . -t comp90024-frontend`
+3. Run a Docker instance by running: `docker run -p 3000:3000 comp90024-frontend`
