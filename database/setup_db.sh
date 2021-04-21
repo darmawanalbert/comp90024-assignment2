@@ -1,0 +1,33 @@
+# create db master
+docker run --name db-master -p 5984:5984 -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=admin -e NODENAME=db-master -v /couchmasterdata:/opt/couchdb/data  -d couchdb:latest
+
+# create worker master
+docker run --name db-worker -p 15984:5984 -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=admin -e NODENAME=db-worker -v cd da/couchworkerdata:/opt/couchdb/data  -d couchdb:latest
+
+# setup couchdb network
+docker network create couchdbnet
+docker network connect couchdbnet db-master
+docker network connect couchdbnet db-worker
+
+# sleep 5s
+sleep 5
+
+# create database
+curl -X PUT http://admin:admin@127.0.0.1:5984/testdb
+
+# setup cluster
+curl -X PUT http://admin:admin@127.0.0.1:5984/_users
+
+curl -X PUT http://admin:admin@127.0.0.1:5984/_replicator
+
+curl -X PUT http://admin:admin@127.0.0.1:5984/_global_changes
+
+curl -X POST -H "Content-Type: application/json" http://admin:admin@127.0.0.1:5984/_cluster_setup -d '{"action": "enable_cluster", "bind_address":"0.0.0.0", "username": "admin", "password":"admin", "node_count":"3"}'
+
+curl -X POST -H "Content-Type: application/json" http://admin:admin@127.0.0.1:5984/_cluster_setup -d '{"action": "enable_cluster", "bind_address":"0.0.0.0", "username": "admin", "password":"admin", "port": 5984, "node_count": "3", "remote_node": "db-worker", "remote_current_user": "admin", "remote_current_password": "admin" }'
+curl -X POST -H "Content-Type: application/json" http://admin:admin@127.0.0.1:5984/_cluster_setup -d '{"action": "add_node", "host":"db-worker", "port": "5984", "username": "admin", "password":"admin"}'
+
+curl -X POST -H "Content-Type: application/json" http://admin:admin@127.0.0.1:5984/_cluster_setup -d '{"action": "finish_cluster"}'
+
+# setup replicator
+curl -X POST -H "Content-Type: application/json" http://admin:admin@localhost:5984/_replicator -d '{"_id": "my_rep","source": "http://admin:admin@localhost:5984/testdb","target":  "http://admin:admin@db-worker:5984/testdb","create_target":  true,"continuous": true}'

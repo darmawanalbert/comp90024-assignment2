@@ -12,7 +12,9 @@ This is a monorepo for COMP90024 - Assignment 2.
 ## Directory Structure
 
 ```js
+|-- database // CouchDB
+|-- deployment // Ansible Playbook
 |-- frontend // Web Application for Data Visualisation
 |-- harvester // Backend Services to gather Twitter data
-|-- deployment // Ansible Playbook
+|-- services // Backend Services for frontend app
 ```

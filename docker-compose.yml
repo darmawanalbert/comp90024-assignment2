@@ -1,0 +1,69 @@
+version: "3.9"  # optional since v1.27.0
+services:
+    service:
+        build:
+            context: .
+            dockerfile: ./services.Dockerfile
+        image: wildananugrah/service
+        environment:
+            DBNAME: testdb
+            DBHOST: http://admin:admin@45.113.232.231:15984/
+        ports:
+        - "8080:18080"
+        networks:
+        - net
+    frontend:
+        build:
+            context: .
+            dockerfile: ./frontend.Dockerfile
+        image: wildananugrah/frontend
+        ports:
+            - "80:3000"
+        networks:
+            - net
+    harvester:
+        build:
+            context: . 
+            dockerfile: ./harvester.Dockerfile
+        image: wildananugrah/harvester
+        command: python -u /app/app.py
+        environment:
+            DBNAME: testdb
+            DBHOST: http://admin:admin@45.113.232.231:5984/
+            QUERY: jokowi
+        labels:
+            - "swarm.cronjob.enable=true"
+            - "swarm.cronjob.schedule=* * * * *"
+            - "swarm.cronjob.skip-running=false"
+        networks:
+            - net
+    # db-master:
+    #     image: couchdb:latest
+    #     deploy:
+    #         replicas: 1
+    #     ports:
+    #         - 5984:5984
+    #     environment:
+    #         NODENAME: db-master
+    #         COUCHDB_USER: admin
+    #         COUCHDB_PASSWORD: admin
+    #     volumes: 
+    #         - ./database/couchmasterdata:/opt/couchdb/data:Z
+    #     networks: 
+    #         - net
+    # db-worker:
+    #     image: couchdb:latest
+    #     deploy:
+    #         replicas: 1
+    #     ports:
+    #         - 15984:5984
+    #     environment:
+    #         NODENAME: db-worker
+    #         COUCHDB_USER: admin
+    #         COUCHDB_PASSWORD: admin
+    #     volumes: 
+    #         - ./database/couchworkerdata:/opt/couchdb/data:Z
+    #     networks: 
+    #         - net
+networks:
+    net:

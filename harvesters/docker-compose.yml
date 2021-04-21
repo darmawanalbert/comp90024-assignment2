@@ -1,0 +1,11 @@
+version: "3.7"  # optional since v1.27.0
+services:
+  web:
+    build:
+        context: .
+        dockerfile: ./Dockerfile
+    image: harvester
+    networks:
+      - comp90024_net
+networks:
+    comp90024_net:
