@@ -44,7 +44,8 @@ const MenuList = ({ isOpen }) => {
                 direction={['column', 'row', 'row', 'row']}
                 pt={[4, 4, 0, 0]}
             >
-                <MenuItem to="/">Home</MenuItem>
+                <MenuItem to="/">Data</MenuItem>
+                <MenuItem to="/analysis">Analysis</MenuItem>
                 <MenuItem to="/about">About</MenuItem>
                 {colorMode === 'light'
                     ? (<IconButton aria-label="Dark mode" icon={<MoonIcon />} onClick={toggleColorMode} />)

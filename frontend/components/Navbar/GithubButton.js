@@ -9,7 +9,7 @@ Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
 import React from 'react';
 import {
-    Box, Text, LinkBox, LinkOverlay,
+    Box, Text, LinkBox, LinkOverlay, Flex,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { FaGithub } from 'react-icons/fa';
@@ -23,7 +23,8 @@ const GithubButton = () => (
             transition="all 0.2s cubic-bezier(.08,.52,.52,1)"
             border="1px"
             px="8px"
-            borderRadius="6px"
+            py="4px"
+            borderRadius="4px"
             fontSize="14px"
             fontWeight="semibold"
             bg="#f5f6f7"
@@ -40,14 +41,16 @@ const GithubButton = () => (
                 boxShadow: '0 0 1px 2px rgba(88, 144, 255, .75), 0 1px 1px rgba(0, 0, 0, .15)',
             }}
         >
-            <FaGithub />
-            <Text>
-                <NextLink href={GITHUB_REPO_URL} passHref>
-                    <LinkOverlay>
-                        GitHub
-                    </LinkOverlay>
-                </NextLink>
-            </Text>
+            <Flex>
+                <FaGithub />
+                <Text px="4px">
+                    <NextLink href={GITHUB_REPO_URL} passHref>
+                        <LinkOverlay>
+                            GitHub
+                        </LinkOverlay>
+                    </NextLink>
+                </Text>
+            </Flex>
         </Box>
     </LinkBox>
 );

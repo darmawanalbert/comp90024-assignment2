@@ -8,6 +8,7 @@ Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 */
 
 import React, { useRef, useState, useEffect } from 'react';
+import { useColorMode } from '@chakra-ui/react';
 import mapboxgl from 'mapbox-gl/dist/mapbox-gl';
 import { MAPBOX_PUBLIC_KEY } from '../utils/config';
 import './Mapbox.module.css';
@@ -20,15 +21,16 @@ const mapContainerStyle = {
 };
 
 const Mapbox = () => {
+    const { colorMode, toggleColorMode } = useColorMode();
     const mapContainer = useRef();
-    const [lng, setLng] = useState(-70.9);
-    const [lat, setLat] = useState(42.35);
+    const [lng, setLng] = useState(144.96378101783327);
+    const [lat, setLat] = useState(-37.81307396157611);
     const [zoom, setZoom] = useState(9);
 
     useEffect(() => {
         const map = new mapboxgl.Map({
             container: mapContainer.current,
-            style: 'mapbox://styles/mapbox/streets-v11',
+            style: colorMode === 'light' ? 'mapbox://styles/mapbox/light-v10' : 'mapbox://styles/mapbox/dark-v10',
             center: [lng, lat],
             zoom,
         });

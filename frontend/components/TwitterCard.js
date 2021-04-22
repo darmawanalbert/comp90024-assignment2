@@ -7,7 +7,10 @@ Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
 Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 */
 
-export { default as Navbar } from './Navbar/Navbar';
-export { default as Mapbox } from './Mapbox';
-export { default as StudentProfile } from './StudentProfile';
-export { default as TwitterCard } from './TwitterCard';
+import React from 'react';
+
+const TwitterCard = () => (
+    <div>Twitter Card</div>
+);
+
+export default TwitterCard;

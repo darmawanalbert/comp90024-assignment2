@@ -11,29 +11,19 @@ import React from 'react';
 import Head from 'next/head';
 import { Heading, Container } from '@chakra-ui/react';
 
-import { Navbar, StudentProfile } from '../components/index';
+import { Navbar } from '../components/index';
 
-export default function About() {
+export default function Analysis() {
     return (
         <div>
             <Head>
-                <title>COMP90024 - About</title>
+                <title>COMP90024 - Analysis</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main>
                 <Navbar />
                 <Container>
-                    <Heading>Team Members</Heading>
-                    <StudentProfile
-                        name="Albert Darmawan"
-                        studentId="1168452"
-                        githubName="darmawanalbert"
-                        twitterName="darmawan2502"
-                        email="darmawana@student.unimelb.edu.au"
-                        jobDescription="Web Application"
-                        imageSource="/albert-darmawan.jpeg"
-                    />
-                    <Heading>Acknowledgements</Heading>
+                    <Heading>Analysis with AURIN</Heading>
                 </Container>
             </main>
         </div>
