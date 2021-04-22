@@ -10,18 +10,17 @@ Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 import React from 'react';
 import Head from 'next/head';
 
-import { Navbar, Mapbox } from '../components/index';
+import { Navbar } from '../components/index';
 
-export default function Home() {
+export default function About() {
     return (
         <div>
             <Head>
-                <title>COMP90024 - Home</title>
+                <title>COMP90024 - About</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main>
                 <Navbar />
-                <Mapbox />
             </main>
         </div>
     );
