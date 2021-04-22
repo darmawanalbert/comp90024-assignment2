@@ -14,6 +14,11 @@ import './Mapbox.module.css';
 
 mapboxgl.accessToken = MAPBOX_PUBLIC_KEY;
 
+const mapContainerStyle = {
+    height: 'calc(100vh - 80px)',
+    width: '100vw',
+};
+
 const Mapbox = () => {
     const mapContainer = useRef();
     const [lng, setLng] = useState(-70.9);
@@ -32,7 +37,7 @@ const Mapbox = () => {
 
     return (
         <div>
-            <div className="map-container" ref={mapContainer} style={{ height: 500, width: 500 }} />
+            <div className="map-container" ref={mapContainer} style={mapContainerStyle} />
         </div>
     );
 };

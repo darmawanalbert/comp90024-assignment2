@@ -22,7 +22,6 @@ const NavbarContainer = ({ children, ...restProps }) => (
         justify="space-between"
         wrap="wrap"
         w="100%"
-        mb={4}
         p={4}
         bg={['teal.400', 'teal.400', 'teal.400', 'teal.400']}
         color={['white', 'white', 'white', 'white']}

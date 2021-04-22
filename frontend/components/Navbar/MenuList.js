@@ -11,10 +11,12 @@ Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
 import React from 'react';
 import {
-    Text, Stack, Box, LinkBox, LinkOverlay, useColorMode, IconButton, Spacer, Button,
+    Text, Stack, Box, LinkBox, LinkOverlay, useColorMode, IconButton, Spacer,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { SunIcon, MoonIcon } from '@chakra-ui/icons';
+
+import GithubButton from './GithubButton';
 
 const MenuItem = ({
     children, isLast, to = '/', ...restProps
@@ -49,9 +51,7 @@ const MenuList = ({ isOpen }) => {
                     : (<IconButton aria-label="Light mode" icon={<SunIcon />} onClick={toggleColorMode} />
                     )}
                 <Spacer />
-                <Button>
-                    GitHub
-                </Button>
+                <GithubButton />
             </Stack>
         </Box>
     );
