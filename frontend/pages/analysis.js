@@ -10,10 +10,35 @@ Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 import React from 'react';
 import Head from 'next/head';
 import { Heading, Container } from '@chakra-ui/react';
+import { Line } from 'react-chartjs-2';
 
 import { Navbar } from '../components/index';
 
 export default function Analysis() {
+    const data = {
+        labels: ['1', '2', '3', '4', '5', '6'],
+        datasets: [
+            {
+                label: '# of Votes',
+                data: [12, 19, 3, 5, 2, 3],
+                fill: false,
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgba(255, 99, 132, 0.2)',
+            },
+        ],
+    };
+
+    const options = {
+        scales: {
+            yAxes: [
+                {
+                    ticks: {
+                        beginAtZero: true,
+                    },
+                },
+            ],
+        },
+    };
     return (
         <div>
             <Head>
@@ -24,6 +49,7 @@ export default function Analysis() {
                 <Navbar />
                 <Container>
                     <Heading>Analysis with AURIN</Heading>
+                    <Line data={data} options={options} />
                 </Container>
             </main>
         </div>
