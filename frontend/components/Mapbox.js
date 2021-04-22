@@ -16,7 +16,7 @@ import './Mapbox.module.css';
 mapboxgl.accessToken = MAPBOX_PUBLIC_KEY;
 
 const mapContainerStyle = {
-    height: 'calc(100vh - 80px)',
+    height: 'calc(100vh - 100px)',
     width: '100vw',
 };
 
@@ -34,11 +34,20 @@ const Mapbox = () => {
             center: [lng, lat],
             zoom,
         });
+        map.on('move', () => {
+            setLng(map.getCenter().lng.toFixed(4));
+            setLat(map.getCenter().lat.toFixed(4));
+            setZoom(map.getZoom().toFixed(2));
+        });
+
         return () => map.remove();
     }, []);
 
     return (
         <div>
+            <div className="sidebar">
+                {`Longitude: ${lng} | Latitude: ${lat} | Zoom: ${zoom}`}
+            </div>
             <div className="map-container" ref={mapContainer} style={mapContainerStyle} />
         </div>
     );
