@@ -8,3 +8,4 @@ Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 */
 
 export { default as Header } from './Header';
+export { default as Mapbox } from './Mapbox';
