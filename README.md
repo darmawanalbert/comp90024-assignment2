@@ -16,7 +16,7 @@ This is a monorepo for COMP90024 - Assignment 2.
   - pip3 install openstacksdk
 ```
 $ ./run_deploy.sh # deploying source and instances
-$ ./run_deploy_source.sh # deploying source and push to docker hub
+$ ./run_deploy_source.sh # deploying source, push to docker hub, then deploy in remote machine
 $ ./run_deploy_instances.sh # deploying instances and existing source in docker hub
 ```
 
