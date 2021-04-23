@@ -1,3 +1,10 @@
+# COMP90024 Team 1
+# Albert Darmawan (1168452) - darmawana@student.unimelb.edu.au
+# Clarisca Lawrencia (1152594) - clawrencia@student.unimelb.edu.au
+# I Gede Wibawa Cakramurti (1047538) - icakramurti@student.unimelb.edu.au
+# Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
+# Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
+
 # Install dependencies only when needed
 FROM node:14.16.1-alpine AS deps
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.

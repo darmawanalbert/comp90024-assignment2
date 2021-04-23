@@ -9,6 +9,15 @@ This is a monorepo for COMP90024 - Assignment 2.
 4. Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
 5. Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
+## how to deploy
+- pre-requisite
+  - sudo apt install ansible
+  - sudo apt install python3-pip
+  - pip3 install openstacksdk
+```
+$ ./run_deploy.sh
+```
+
 ## Directory Structure
 
 ```js

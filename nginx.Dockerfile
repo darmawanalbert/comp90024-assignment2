@@ -5,10 +5,6 @@
 # Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
 # Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
-FROM python:3.8
-
-COPY services/ /app/
-
-RUN pip install -r /app/requirements.txt
-
-CMD ["python","-u","/app/app.py"]
+FROM nginx
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
