@@ -1,3 +1,2 @@
-sudo rm -r keypairs/*
-sudo rm ~/.ssh/known_hosts; touch ~/.ssh/known_hosts
-python3 deploy.py
+./run_deploy_source.sh
+./run_deploy_instances.sh

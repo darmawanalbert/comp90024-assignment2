@@ -15,15 +15,20 @@ This is a monorepo for COMP90024 - Assignment 2.
   - sudo apt install python3-pip
   - pip3 install openstacksdk
 ```
-$ ./run_deploy.sh
+$ ./run_deploy.sh # deploying source and instances
+$ ./run_deploy_source.sh # deploying source and push to github
+$ ./run_deploy_instances.sh # deploying instances and existing source in github
 ```
 
 ## Directory Structure
 
 ```js
+|-- architectures // architecture design system .png
 |-- database // CouchDB
 |-- deployment // Ansible Playbook
 |-- frontend // Web Application for Data Visualisation
 |-- harvester // Backend Services to gather Twitter data
+|-- nginx // default.cfg
 |-- services // Backend Services for frontend app
+|-- templates // config templates
 ```
