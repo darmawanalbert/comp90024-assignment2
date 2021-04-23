@@ -8,9 +8,32 @@ Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 */
 
 import React from 'react';
+import {
+    Box, Image, Text, Flex,
+} from '@chakra-ui/react';
+import { FaTwitter } from 'react-icons/fa';
 
-const TwitterCard = () => (
-    <div>Twitter Card</div>
+const TwitterCard = ({
+    imageSource, displayName, username, tweet, time, date,
+}) => (
+    <Box maxW="xs" p={4} borderWidth="1px" borderRadius="lg" overflow="hidden">
+        <Flex justifyContent="flex-start" alignItems="center" marginBottom={4}>
+            <Image src={imageSource || '/avatar.png'} alt={displayName} borderRadius="full" boxSize="40px" />
+            <Box marginLeft={2}>
+                <Text fontWeight="semibold" lineHeight="100%">{displayName}</Text>
+                <Text fontSize="sm" color="gray.500">{`@${username}`}</Text>
+            </Box>
+        </Flex>
+        <Text>{tweet}</Text>
+        <Flex justifyContent="space-between" alignItems="center">
+            <Text fontSize="sm">
+                {time}
+                <span>&nbsp;·&nbsp;</span>
+                {date}
+            </Text>
+            <FaTwitter style={{ color: '#00acee' }} />
+        </Flex>
+    </Box>
 );
 
 export default TwitterCard;

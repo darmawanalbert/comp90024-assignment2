@@ -9,10 +9,10 @@ Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
 import React from 'react';
 import Head from 'next/head';
-import { Heading, Container } from '@chakra-ui/react';
+import { Heading, Container, Center } from '@chakra-ui/react';
 import { Line } from 'react-chartjs-2';
 
-import { Navbar } from '../components/index';
+import { Navbar, TwitterCard } from '../components/index';
 
 export default function Analysis() {
     const data = {
@@ -47,9 +47,18 @@ export default function Analysis() {
             </Head>
             <main>
                 <Navbar />
-                <Container>
-                    <Heading>Analysis with AURIN</Heading>
+                <Container maxW="3xl">
+                    <Center margin={8}>
+                        <Heading>Analysis with AURIN</Heading>
+                    </Center>
                     <Line data={data} options={options} />
+                    <TwitterCard
+                        displayName="Albert Darmawan"
+                        username="darmawan2502"
+                        tweet="Wow this is awesome!"
+                        time="10:50 PM"
+                        date="Apr 23, 2021"
+                    />
                 </Container>
             </main>
         </div>
