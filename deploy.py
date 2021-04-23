@@ -23,7 +23,6 @@ CLOUD_NAME = 'comp90024'
 NETWORK_NAME = 'qh2-uom'
 FOLDER_NAME = 'keypairs/'
 IMAGE_NAME = 'NeCTAR Ubuntu 20.04 LTS (Focal) amd64'
-conn = openstack.connect(cloud=CLOUD_NAME)
 DEFAULT_USER = "ubuntu"
 LOCAL_DOCKER_COMPOSE = "docker-compose.yml"
 DOCKER_APP_NAME = "comp90024"
@@ -34,6 +33,42 @@ LOCAL_NGINX_CONF = f"{LOCAL_NGINX_FOLDER}default.conf"
 LOCAL_NGINX_DOCKER_COMPOSE = f"nginx.docker-compose.yml"
 LOCAL_NGINX_DOCKER_FILE = f"nginx.Dockerfile"
 LOCAL_CONSTANTS = f"constans.sh"
+
+conn = openstack.connect(cloud=CLOUD_NAME)
+
+def delete_all_instances():
+    for server in conn.compute.servers():
+        while True: # magic happens here.
+            try:
+                print("Sleeping for 5s ") # magic happens here.
+                time.sleep(5)
+                conn.compute.delete_server(server)
+            except Exception as err:
+                print(f"ERROR: {err}")
+                continue
+            break
+
+def delete_key_pairs():
+    for keypair in conn.compute.keypairs()
+    while True: # magic happens here.
+        try:
+            print("Sleeping for 5s ") # magic happens here.
+            time.sleep(5)
+            conn.compute.delete_keypair(keypair)
+        except Exception as err:
+            print(f"ERROR: {err}")
+            continue
+        break
+
+def delete_network(network_name):
+    print("Delete Network:")
+
+    networks = conn.network.find_network()
+
+    for subnet in networks.subnet_ids:
+        conn.network.delete_subnet(subnet, ignore_missing=False)
+
+    conn.network.delete_network(networks, ignore_missing=False)
 
 def get_image_id():
     print('image processed..')
@@ -69,7 +104,7 @@ def get_security_group_name():
         conn.network.create_security_group_rule(security_group_id=security_group.id,direction='ingress',remote_ip_prefix='0.0.0.0/0',protocol='tcp',port_range_max='25984',port_range_min='25984',ethertype='IPv4')
     return security_group.name
 
-def create_image(server_name_list):
+def create_instance(server_name_list):
     for server in server_name_list:
         while True: # magic happens here.
             try:
@@ -207,8 +242,13 @@ def create_constants_file(instance1):
 start = datetime.now()
 print(f"started at {start}")
 
-# create image
-create_image(SERVER_NAME_LIST)
+#delete instances, keypairs, and networks in nectar
+delete_all_instances()
+delete_key_pairs()
+delete_network(NETWORK_NAME)
+
+# create instance
+create_instance(SERVER_NAME_LIST)
 
 # docker, docker-compose, docker-machine
 server_list = setup_docker()
