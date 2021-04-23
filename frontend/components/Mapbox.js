@@ -22,12 +22,14 @@ const mapContainerStyle = {
 
 const Mapbox = () => {
     const { colorMode, toggleColorMode } = useColorMode();
+    const [isComponentMounted, setIsComponentMounted] = useState(false);
     const mapContainer = useRef();
     const [lng, setLng] = useState(144.96378101783327);
     const [lat, setLat] = useState(-37.81307396157611);
     const [zoom, setZoom] = useState(9);
 
     useEffect(() => {
+        setIsComponentMounted(true);
         const map = new mapboxgl.Map({
             container: mapContainer.current,
             style: colorMode === 'light' ? 'mapbox://styles/mapbox/light-v10' : 'mapbox://styles/mapbox/dark-v10',
