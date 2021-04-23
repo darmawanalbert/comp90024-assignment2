@@ -9,12 +9,21 @@ Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
 import React from 'react';
 import { ChakraProvider } from '@chakra-ui/react';
+import { SWRConfig } from 'swr';
+import axios from 'axios';
+import { API_REFRESH_INTERVAL } from '../utils/config';
 import theme from '../utils/theme';
 
 function MyApp({ Component, pageProps }) {
     return (
         <ChakraProvider theme={theme}>
-            <Component {...pageProps} />
+            <SWRConfig value={{
+                refreshInterval: API_REFRESH_INTERVAL,
+                fetcher: (resource, init) => axios.get(resource, init).then((res) => res.data),
+            }}
+            >
+                <Component {...pageProps} />
+            </SWRConfig>
         </ChakraProvider>
     );
 }

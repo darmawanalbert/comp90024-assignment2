@@ -9,9 +9,8 @@ Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
 import React from 'react';
 import Head from 'next/head';
-import { Heading } from '@chakra-ui/react';
 
-import { Header } from '../components/index';
+import { Navbar, Mapbox } from '../components/index';
 
 export default function Home() {
     return (
@@ -21,8 +20,8 @@ export default function Home() {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main>
-                <Header />
-                <Heading>Welcome to Home Page!</Heading>
+                <Navbar />
+                <Mapbox />
             </main>
         </div>
     );

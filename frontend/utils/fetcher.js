@@ -7,12 +7,16 @@ Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
 Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 */
 
-import { extendTheme } from '@chakra-ui/react';
+import useSWR from 'swr';
+import { API_URL } from './config';
 
-const config = {
-    initialColorMode: 'light',
-    useSystemColorMode: false,
+const useMapInfo = () => {
+    const { data, error } = useSWR(`${API_URL}/examples`);
+    return {
+        mapInfo: data,
+        isLoading: !error && !data,
+        isError: error,
+    };
 };
 
-const theme = extendTheme({ config });
-export default theme;
+export { useMapInfo };

@@ -7,12 +7,10 @@ Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
 Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 */
 
-import { extendTheme } from '@chakra-ui/react';
+import React from 'react';
 
-const config = {
-    initialColorMode: 'light',
-    useSystemColorMode: false,
-};
+const TwitterCard = () => (
+    <div>Twitter Card</div>
+);
 
-const theme = extendTheme({ config });
-export default theme;
+export default TwitterCard;

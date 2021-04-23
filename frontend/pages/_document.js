@@ -23,7 +23,9 @@ class MyDocument extends Document {
     render() {
         return (
             <Html>
-                <Head />
+                <Head>
+                    <link href="/mapbox-gl.css" rel="stylesheet" />
+                </Head>
                 <body>
                     <ColorModeScript initialColorMode={theme.config.initialColorMode} />
                     <Main />
