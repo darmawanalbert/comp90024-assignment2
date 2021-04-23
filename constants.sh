@@ -1,0 +1,1 @@
+export INSTANCE1=45.113.232.232

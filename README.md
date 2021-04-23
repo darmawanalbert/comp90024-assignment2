@@ -25,7 +25,6 @@ $ ./run_deploy_instances.sh # deploying instances and existing source in docker 
 ```js
 |-- architectures // architecture design system .png
 |-- database // CouchDB
-|-- deployment // Ansible Playbook
 |-- frontend // Web Application for Data Visualisation
 |-- harvester // Backend Services to gather Twitter data
 |-- nginx // default.cfg

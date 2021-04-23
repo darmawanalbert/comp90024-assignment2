@@ -33,6 +33,7 @@ LOCAL_NGINX_FOLDER = "nginx/"
 LOCAL_NGINX_CONF = f"{LOCAL_NGINX_FOLDER}default.conf"
 LOCAL_NGINX_DOCKER_COMPOSE = f"nginx.docker-compose.yml"
 LOCAL_NGINX_DOCKER_FILE = f"nginx.Dockerfile"
+LOCAL_CONSTANTS = f"constans.sh"
 
 def get_image_id():
     print('image processed..')
@@ -191,6 +192,18 @@ def create_nginx_conf(server_list):
     fout.write(template)
     fout.close()
 
+def create_constants_file(instance1):
+
+    fin = open("templates/constants.template", "rt")
+    template = fin.read()
+    template = template.replace('${INSTANCE1}', instance1)
+
+    fin.close()
+
+    fout = open(LOCAL_CONSTANTS, "wt")
+    fout.write(template)
+    fout.close()
+
 start = datetime.now()
 print(f"started at {start}")
 
@@ -225,6 +238,9 @@ try:
     # create docker-compose.yml
     create_docker_compose(server_list['instance4']['addr'])
 
+    # create docker-compose.yml
+    create_ipdeploy(server_list['instance1']['addr'])
+
     # copy docker-compose
     print(f"Copy {LOCAL_DOCKER_COMPOSE} to remote machine [{server_list['instance1']['addr']}].")
     command_bash = f"scp -oStrictHostKeyChecking=no -i {server_list['instance1']['keypair']} {LOCAL_DOCKER_COMPOSE} {DEFAULT_USER}@{server_list['instance1']['addr']}:{LOCAL_DOCKER_COMPOSE} "
@@ -242,6 +258,7 @@ try:
 
     # create nginx/default.conf
     create_nginx_conf(server_list)
+    create_constants_file(server_list['instance1']['addr'])
 
     # copy nginx/
     print(f"Copy default.conf to remote machine [{server_list['instance1']['addr']}].")
