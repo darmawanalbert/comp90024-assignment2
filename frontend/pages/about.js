@@ -95,6 +95,16 @@ export default function About() {
                     </Text>
                     <br />
                     <Text>
+                        For analysis, we also utilised some datasets from
+                        {' '}
+                        <Link color="teal.500" href="https://aurin.org.au/" isExternal>
+                            AURIN
+                        </Link>
+                        . AURIN (The Australian Urban Research Infrastructure Network) provides
+                        access to various datasets, maintained by the University of Melbourne.
+                    </Text>
+                    <br />
+                    <Text>
                         This project was supported by use of the
                         {' '}
                         <Link color="teal.500" href="https://docs.cloud.unimelb.edu.au/" isExternal>
