@@ -72,7 +72,7 @@ const Mapbox = () => {
     return (
         <Flex>
             <div className="map-container" ref={mapContainer} style={mapContainerStyle} />
-            <Box w={1 / 3} p={4} borderRight="1px" borderRightColor="gray.200" overflowY="scroll" height="90vh">
+            <Box w={1 / 3} p={4} borderRight="1px" borderRightColor="gray.200" overflowY="scroll" height="93vh">
                 <Text fontSize="xl" fontWeight="semibold">Info</Text>
                 <StatGroup p={4} borderWidth="1px" borderRadius="lg" overflow="hidden" justifyContent="center">
                     <Stat>
@@ -90,6 +90,46 @@ const Mapbox = () => {
                 </StatGroup>
                 <br />
                 <Text fontSize="xl" fontWeight="semibold">Sample Tweet</Text>
+                <TwitterCard
+                    displayName="Anonymous"
+                    username="anonymous"
+                    tweet="Wow this is awesome!"
+                    time="10:50 PM"
+                    date="Apr 23, 2021"
+                />
+                <br />
+                <TwitterCard
+                    displayName="Anonymous"
+                    username="anonymous"
+                    tweet="Wow this is awesome!"
+                    time="10:50 PM"
+                    date="Apr 23, 2021"
+                />
+                <br />
+                <TwitterCard
+                    displayName="Anonymous"
+                    username="anonymous"
+                    tweet="Wow this is awesome!"
+                    time="10:50 PM"
+                    date="Apr 23, 2021"
+                />
+                <br />
+                <TwitterCard
+                    displayName="Anonymous"
+                    username="anonymous"
+                    tweet="Wow this is awesome!"
+                    time="10:50 PM"
+                    date="Apr 23, 2021"
+                />
+                <br />
+                <TwitterCard
+                    displayName="Anonymous"
+                    username="anonymous"
+                    tweet="Wow this is awesome!"
+                    time="10:50 PM"
+                    date="Apr 23, 2021"
+                />
+                <br />
                 <TwitterCard
                     displayName="Anonymous"
                     username="anonymous"
