@@ -9,23 +9,78 @@ Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
 import React from 'react';
 import {
-    Box, Flex, Image, Text, Spacer,
+    Box, Flex, Image, Text, LinkBox, LinkOverlay,
 } from '@chakra-ui/react';
-import { FaGithub, FaTwitter } from 'react-icons/fa';
-import { EmailIcon } from '@chakra-ui/icons';
+import { FaGithub, FaTwitter, FaEnvelope } from 'react-icons/fa';
 
 const StudentProfile = ({
     name, studentId, githubName, twitterName, email, jobDescription, imageSource,
 }) => (
-    <Box maxW="sm" p={4} borderWidth="1px" borderRadius="lg" overflow="hidden">
+    <Box maxW="xs" p={4} borderWidth="1px" borderRadius="lg" overflow="hidden">
         <Flex justifyContent="center" alignItems="flex-start">
-            <Image src={imageSource} alt={name} borderRadius="full" boxSize="100px" />
+            <Image src={imageSource || '/avatar.png'} alt={name} borderRadius="full" boxSize="100px" />
             <Box marginLeft={4}>
                 <Text>{`${name} (${studentId})`}</Text>
-                <Flex>
-                    <FaGithub />
-                    <FaTwitter />
-                    <EmailIcon />
+                <Flex alignItems="center">
+                    {githubName
+                        ? (
+                            <LinkBox>
+                                <Box
+                                    mr={2}
+                                    _hover={{ bg: '#ebedf0' }}
+                                    _active={{
+                                        bg: '#dddfe2',
+                                        transform: 'scale(0.98)',
+                                        borderColor: '#bec3c9',
+                                    }}
+                                    _focus={{
+                                        boxShadow: '0 0 1px 2px rgba(88, 144, 255, .75), 0 1px 1px rgba(0, 0, 0, .15)',
+                                    }}
+                                >
+                                    <LinkOverlay href={`https://github.com/${githubName}`} isExternal>
+                                        <FaGithub />
+                                    </LinkOverlay>
+                                </Box>
+                            </LinkBox>
+                        ) : null}
+                    {twitterName
+                        ? (
+                            <LinkBox>
+                                <Box
+                                    mr={2}
+                                    _hover={{ bg: '#ebedf0' }}
+                                    _active={{
+                                        bg: '#dddfe2',
+                                        transform: 'scale(0.98)',
+                                        borderColor: '#bec3c9',
+                                    }}
+                                    _focus={{
+                                        boxShadow: '0 0 1px 2px rgba(88, 144, 255, .75), 0 1px 1px rgba(0, 0, 0, .15)',
+                                    }}
+                                >
+                                    <LinkOverlay href={`https://twitter.com/${twitterName}`} isExternal>
+                                        <FaTwitter />
+                                    </LinkOverlay>
+                                </Box>
+                            </LinkBox>
+                        ) : null}
+                    <LinkBox>
+                        <Box
+                            _hover={{ bg: '#ebedf0' }}
+                            _active={{
+                                bg: '#dddfe2',
+                                transform: 'scale(0.98)',
+                                borderColor: '#bec3c9',
+                            }}
+                            _focus={{
+                                boxShadow: '0 0 1px 2px rgba(88, 144, 255, .75), 0 1px 1px rgba(0, 0, 0, .15)',
+                            }}
+                        >
+                            <LinkOverlay href={`mailto:${email}`} isExternal>
+                                <FaEnvelope />
+                            </LinkOverlay>
+                        </Box>
+                    </LinkBox>
                 </Flex>
                 <Text fontSize="sm">{jobDescription}</Text>
             </Box>
