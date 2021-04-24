@@ -7,24 +7,31 @@ Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
 Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 */
 
+// Inspired from: https://dev.to/naomigrace/how-to-integrate-mapbox-gl-js-in-your-next-js-project-without-react-map-gl-or-a-react-wrapper-library-50f#2-adding-a-map
+
 import React, { useRef, useState, useEffect } from 'react';
+import {
+    Box, Flex, Text, Stat, StatLabel, StatNumber, StatGroup,
+} from '@chakra-ui/react';
 import mapboxgl from 'mapbox-gl/dist/mapbox-gl';
 import { MAPBOX_PUBLIC_KEY } from '../utils/config';
 import { addDataLayer, initialiseMap } from '../utils/mapboxUtil';
+import TwitterCard from './TwitterCard';
+
 import './Mapbox.module.css';
 
 mapboxgl.accessToken = MAPBOX_PUBLIC_KEY;
 
 const mapContainerStyle = {
-    height: 'calc(100vh - 100px)',
+    height: 'calc(100vh - 70px)',
     width: '100vw',
 };
 
 const Mapbox = () => {
     const [isComponentMounted, setIsComponentMounted] = useState(false);
     const mapContainer = useRef();
-    const [lng, setLng] = useState(144.96378101783327);
-    const [lat, setLat] = useState(-37.81307396157611);
+    const [lng, setLng] = useState(144.9637);
+    const [lat, setLat] = useState(-37.8130);
     // const [lng, setLng] = useState(-77.02);
     // const [lat, setLat] = useState(-38.887);
     const [zoom, setZoom] = useState(12.5);
@@ -63,12 +70,35 @@ const Mapbox = () => {
     }, [isComponentMounted, setMap, data, Map]);
 
     return (
-        <div>
-            <div className="sidebar">
-                {`Longitude: ${lng} | Latitude: ${lat} | Zoom: ${zoom}`}
-            </div>
+        <Flex>
             <div className="map-container" ref={mapContainer} style={mapContainerStyle} />
-        </div>
+            <Box w={1 / 3} p={4} borderRight="1px" borderRightColor="gray.200" overflowY="scroll" height="90vh">
+                <Text fontSize="xl" fontWeight="semibold">Info</Text>
+                <StatGroup p={4} borderWidth="1px" borderRadius="lg" overflow="hidden" justifyContent="center">
+                    <Stat>
+                        <StatLabel>Longitude</StatLabel>
+                        <StatNumber>{lng}</StatNumber>
+                    </Stat>
+                    <Stat>
+                        <StatLabel>Latitude</StatLabel>
+                        <StatNumber>{lat}</StatNumber>
+                    </Stat>
+                    <Stat>
+                        <StatLabel>Zoom</StatLabel>
+                        <StatNumber>{zoom}</StatNumber>
+                    </Stat>
+                </StatGroup>
+                <br />
+                <Text fontSize="xl" fontWeight="semibold">Sample Tweet</Text>
+                <TwitterCard
+                    displayName="Anonymous"
+                    username="anonymous"
+                    tweet="Wow this is awesome!"
+                    time="10:50 PM"
+                    date="Apr 23, 2021"
+                />
+            </Box>
+        </Flex>
     );
 };
 
