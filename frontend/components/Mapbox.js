@@ -44,6 +44,7 @@ const Mapbox = () => {
 
     const drawerButtonRef = useRef();
     const { isOpen, onOpen, onClose } = useDisclosure();
+    const [topicName, setTopicName] = useState('Economy');
 
     useEffect(() => {
         setIsComponentMounted(true);
@@ -75,6 +76,11 @@ const Mapbox = () => {
             });
         }
     }, [isComponentMounted, setMap, data, Map]);
+
+    const handleOpen = (selectedTopic) => {
+        setTopicName(selectedTopic);
+        onOpen();
+    };
 
     return (
         <Flex>
@@ -110,7 +116,7 @@ const Mapbox = () => {
                         <Tr>
                             <Td>1</Td>
                             <Td>
-                                <Button variant="link" rightIcon={<ExternalLinkIcon />} ref={drawerButtonRef} onClick={onOpen}>
+                                <Button variant="link" rightIcon={<ExternalLinkIcon />} ref={drawerButtonRef} onClick={() => handleOpen('Business')}>
                                     Business
                                 </Button>
                             </Td>
@@ -118,12 +124,20 @@ const Mapbox = () => {
                         </Tr>
                         <Tr>
                             <Td>2</Td>
-                            <Td>Politics</Td>
+                            <Td>
+                                <Button variant="link" rightIcon={<ExternalLinkIcon />} ref={drawerButtonRef} onClick={() => handleOpen('Politics')}>
+                                    Politics
+                                </Button>
+                            </Td>
                             <Td isNumeric>58</Td>
                         </Tr>
                         <Tr>
                             <Td>3</Td>
-                            <Td>Entertainment</Td>
+                            <Td>
+                                <Button variant="link" rightIcon={<ExternalLinkIcon />} ref={drawerButtonRef} onClick={() => handleOpen('Entertainment')}>
+                                    Entertainment
+                                </Button>
+                            </Td>
                             <Td isNumeric>10</Td>
                         </Tr>
                     </Tbody>
@@ -144,7 +158,7 @@ const Mapbox = () => {
                     <DrawerOverlay>
                         <DrawerContent>
                             <DrawerCloseButton />
-                            <DrawerHeader>Sample Tweet</DrawerHeader>
+                            <DrawerHeader>{`${topicName} Tweet`}</DrawerHeader>
                             <DrawerBody>
                                 <TwitterCard
                                     displayName="Anonymous"
