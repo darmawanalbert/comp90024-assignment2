@@ -12,8 +12,12 @@ Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 import React, { useRef, useState, useEffect } from 'react';
 import {
     Box, Flex, Text, Stat, StatLabel, StatNumber, StatGroup,
+    Table, TableCaption, Thead, Tbody, Th, Td, Tr, Tfoot,
+    Button, useDisclosure, Drawer, DrawerOverlay, DrawerHeader,
+    DrawerContent, DrawerBody, DrawerCloseButton,
 } from '@chakra-ui/react';
 import mapboxgl from 'mapbox-gl/dist/mapbox-gl';
+import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { MAPBOX_PUBLIC_KEY } from '../utils/config';
 import { addDataLayer, initialiseMap } from '../utils/mapboxUtil';
 import TwitterCard from './TwitterCard';
@@ -37,6 +41,9 @@ const Mapbox = () => {
     const [zoom, setZoom] = useState(12.5);
     const [Map, setMap] = useState();
     const data = 'https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson';
+
+    const drawerButtonRef = useRef();
+    const { isOpen, onOpen, onClose } = useDisclosure();
 
     useEffect(() => {
         setIsComponentMounted(true);
@@ -89,54 +96,107 @@ const Mapbox = () => {
                     </Stat>
                 </StatGroup>
                 <br />
-                <Text fontSize="xl" fontWeight="semibold">Sample Tweet</Text>
-                <TwitterCard
-                    displayName="Anonymous"
-                    username="anonymous"
-                    tweet="Wow this is awesome!"
-                    time="10:50 PM"
-                    date="Apr 23, 2021"
-                />
-                <br />
-                <TwitterCard
-                    displayName="Anonymous"
-                    username="anonymous"
-                    tweet="Wow this is awesome!"
-                    time="10:50 PM"
-                    date="Apr 23, 2021"
-                />
-                <br />
-                <TwitterCard
-                    displayName="Anonymous"
-                    username="anonymous"
-                    tweet="Wow this is awesome!"
-                    time="10:50 PM"
-                    date="Apr 23, 2021"
-                />
-                <br />
-                <TwitterCard
-                    displayName="Anonymous"
-                    username="anonymous"
-                    tweet="Wow this is awesome!"
-                    time="10:50 PM"
-                    date="Apr 23, 2021"
-                />
-                <br />
-                <TwitterCard
-                    displayName="Anonymous"
-                    username="anonymous"
-                    tweet="Wow this is awesome!"
-                    time="10:50 PM"
-                    date="Apr 23, 2021"
-                />
-                <br />
-                <TwitterCard
-                    displayName="Anonymous"
-                    username="anonymous"
-                    tweet="Wow this is awesome!"
-                    time="10:50 PM"
-                    date="Apr 23, 2021"
-                />
+                <Text fontSize="xl" fontWeight="semibold">Topics</Text>
+                <Table variant="simple">
+                    <TableCaption>Last updated: April 2021</TableCaption>
+                    <Thead>
+                        <Tr>
+                            <Th>No</Th>
+                            <Th>Topic Name</Th>
+                            <Th isNumeric>#Tweets</Th>
+                        </Tr>
+                    </Thead>
+                    <Tbody>
+                        <Tr>
+                            <Td>1</Td>
+                            <Td>
+                                <Button variant="link" rightIcon={<ExternalLinkIcon />} ref={drawerButtonRef} onClick={onOpen}>
+                                    Business
+                                </Button>
+                            </Td>
+                            <Td isNumeric>104</Td>
+                        </Tr>
+                        <Tr>
+                            <Td>2</Td>
+                            <Td>Politics</Td>
+                            <Td isNumeric>58</Td>
+                        </Tr>
+                        <Tr>
+                            <Td>3</Td>
+                            <Td>Entertainment</Td>
+                            <Td isNumeric>10</Td>
+                        </Tr>
+                    </Tbody>
+                    <Tfoot>
+                        <Tr>
+                            <Th colSpan={2}>Total</Th>
+                            <Th isNumeric>172</Th>
+                        </Tr>
+                    </Tfoot>
+                </Table>
+                <Drawer
+                    isOpen={isOpen}
+                    placement="right"
+                    onClose={onClose}
+                    finalFocusRef={drawerButtonRef}
+                    size="sm"
+                >
+                    <DrawerOverlay>
+                        <DrawerContent>
+                            <DrawerCloseButton />
+                            <DrawerHeader>Sample Tweet</DrawerHeader>
+                            <DrawerBody>
+                                <TwitterCard
+                                    displayName="Anonymous"
+                                    username="anonymous"
+                                    tweet="Wow this is awesome!"
+                                    time="10:50 PM"
+                                    date="Apr 23, 2021"
+                                />
+                                <br />
+                                <TwitterCard
+                                    displayName="Anonymous"
+                                    username="anonymous"
+                                    tweet="Wow this is awesome!"
+                                    time="10:50 PM"
+                                    date="Apr 23, 2021"
+                                />
+                                <br />
+                                <TwitterCard
+                                    displayName="Anonymous"
+                                    username="anonymous"
+                                    tweet="Wow this is awesome!"
+                                    time="10:50 PM"
+                                    date="Apr 23, 2021"
+                                />
+                                <br />
+                                <TwitterCard
+                                    displayName="Anonymous"
+                                    username="anonymous"
+                                    tweet="Wow this is awesome!"
+                                    time="10:50 PM"
+                                    date="Apr 23, 2021"
+                                />
+                                <br />
+                                <TwitterCard
+                                    displayName="Anonymous"
+                                    username="anonymous"
+                                    tweet="Wow this is awesome!"
+                                    time="10:50 PM"
+                                    date="Apr 23, 2021"
+                                />
+                                <br />
+                                <TwitterCard
+                                    displayName="Anonymous"
+                                    username="anonymous"
+                                    tweet="Wow this is awesome!"
+                                    time="10:50 PM"
+                                    date="Apr 23, 2021"
+                                />
+                            </DrawerBody>
+                        </DrawerContent>
+                    </DrawerOverlay>
+                </Drawer>
             </Box>
         </Flex>
     );
