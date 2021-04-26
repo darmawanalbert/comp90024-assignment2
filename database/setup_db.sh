@@ -7,7 +7,7 @@
 # declare variables for the couchdb cluster setup
 export declare -a nodes=(115.146.95.84 45.113.235.136 45.113.233.153)
 export masternode=`echo ${nodes} | cut -f1 -d' '`
-export declare -a ports=(5984 15984 25984)
+export declare -a ports=(15984 25984 35984)
 export masterport=`echo ${ports} | cut -f1 -d' '`
 export declare -a othernodes=`echo ${nodes[@]} | sed s/${masternode}//`
 export declare -a otherports=`echo ${ports[@]} | sed s/${masterport}//`
@@ -57,7 +57,7 @@ sleep 10
 # setup the couchdb cluster
 for (( i=0; i<${sizeworker}; i++ ));
 do
-    curl -XPOST "http://${user}:${pass}@${masternode}:5984/_cluster_setup" \
+    curl -XPOST "http://${user}:${pass}@${masternode}:${masterport}/_cluster_setup" \
       --header "Content-Type: application/json"\
       --data "{\"action\": \"enable_cluster\", \"bind_address\":\"0.0.0.0\",\
              \"username\": \"${user}\", \"password\":\"${pass}\", \"port\": \"${otherports[${i}]}\",\
@@ -67,7 +67,7 @@ done
 
 for (( i=0; i<${sizeworker}; i++ ));
 do
-    curl -XPOST "http://${user}:${pass}@${masternode}:5984/_cluster_setup"\
+    curl -XPOST "http://${user}:${pass}@${masternode}:${masterport}/_cluster_setup"\
       --header "Content-Type: application/json"\
       --data "{\"action\": \"add_node\", \"host\":\"${othernodes[${i}]}\",\
              \"port\": \"${otherports[${i}]}\", \"username\": \"${user}\", \"password\":\"${pass}\"}"
