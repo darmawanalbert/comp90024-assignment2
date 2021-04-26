@@ -108,11 +108,19 @@ def main():
                         passes=10)
 
     ##Converting from tuuple to dictionary, and remove the weights from each keyword
+<<<<<<< HEAD
 
     tuple_topics = tweets_lda.show_topics()
 
+=======
+    tuple_topics = tweets_lda.show_topics()
+>>>>>>> 8fe45f2dfdd10c3a0a07a0132e77ab41a23a893e
     topics_dict = {'Topic_' + str(i+1): [token for token, score in tweets_lda.show_topic(i, topn=10)] for i in range(0, tweets_lda.num_topics)}
 
     for i in topics_dict:
         topic_summary = get_relevant_articles(topics_dict[i])
+<<<<<<< HEAD
         print(topic_summary)
+=======
+        print(topic_summary)
+>>>>>>> 8fe45f2dfdd10c3a0a07a0132e77ab41a23a893e
