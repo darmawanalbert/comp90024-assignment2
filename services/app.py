@@ -5,11 +5,30 @@
 # Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
 # Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 import requests
 import os
 import json
+
+import argparse
+from flask_cors import CORS
+from flask_swagger_ui import get_swaggerui_blueprint
+from routes import request_api
+
 app = Flask(__name__)
+
+### swagger specific ###
+SWAGGER_URL = '/docs'
+API_URL = '/static/swagger.yml'
+SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': "Group 1 COMP90024"
+    }
+)
+app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
+### end swagger specific ###
 
 DB_HOST = os.environ.get('DBHOST') if os.environ.get('DBHOST') != None else "http://admin:admin@127.0.0.1:5984/"
 DB_NAME = os.environ.get('DBNAME') if os.environ.get('DBNAME') != None else "testdb"
@@ -33,4 +52,4 @@ def get():
     return jsonify({ 'number' : len(response_json['docs']), 'data': response_json })
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=18080, debug=True)
+    app.run(host="127.0.0.1", port=5000, debug=True)
