@@ -1,5 +1,11 @@
+# adding user to docker so can use docker without sudo
+sudo usermod -aG docker ${ubuntu}
+su - ${ubuntu}
+
+sleep 5
+
 # declare variables for the couchdb cluster setup
-export declare -a nodes=(172.17.0.4 172.17.0.3 172.17.0.2)
+export declare -a nodes=(115.146.95.84 45.113.235.136 45.113.233.153)
 export masternode=`echo ${nodes} | cut -f1 -d' '`
 export declare -a othernodes=`echo ${nodes[@]} | sed s/${masternode}//`
 export size=${#nodes[@]}
@@ -9,23 +15,24 @@ export VERSION='latest'
 export cookie='a192aeb9904e6590849337933b000c99'
 
 # pull from dockerhub ibmcom
-sudo docker pull ibmcom/couchdb3:${VERSION}
+docker pull ibmcom/couchdb3:${VERSION}
 
 # create docker container
 # stops and removes the docker if already exist
 for node in "${nodes[@]}" 
   do
-    if [ ! -z $(sudo docker ps --all --filter "name=couchdb${node}" --quiet) ] 
+    if [ ! -z $(docker ps --all --filter "name=couchdb${node}" --quiet) ] 
        then
-         sudo docker stop $(sudo docker ps --all --filter "name=couchdb${node}" --quiet) 
-         sudo docker rm $(sudo docker ps --all --filter "name=couchdb${node}" --quiet)
+         docker stop $(docker ps --all --filter "name=couchdb${node}" --quiet) 
+         docker rm $(docker ps --all --filter "name=couchdb${node}" --quiet)
     fi 
 done
 
 for node in "${nodes[@]}" 
   do
-    sudo docker create\
+    docker create\
       --name couchdb${node}\
+      --expose 5984\
       --env COUCHDB_USER=${user}\
       --env COUCHDB_PASSWORD=${pass}\
       --env COUCHDB_SECRET=${cookie}\
@@ -34,13 +41,13 @@ for node in "${nodes[@]}"
 done
 
 # put in const in docker container IDs
-declare -a conts=(`sudo docker ps --all | grep couchdb | cut -f1 -d' ' | xargs -n${size} -d'\n'`)
+declare -a conts=(`docker ps --all | grep couchdb | cut -f1 -d' ' | xargs -n${size} -d'\n'`)
 
 # start the containers
-for cont in "${conts[@]}"; do sudo docker start ${cont}; done
+for cont in "${conts[@]}"; do docker start ${cont}; done
 
-# sleep for 5s
-sleep 5
+# sleep for 10s after starting
+sleep 10
 
 # setup the couchdb cluster
 for node in ${othernodes} 
