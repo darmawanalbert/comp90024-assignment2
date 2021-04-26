@@ -7,9 +7,12 @@
 # declare variables for the couchdb cluster setup
 export declare -a nodes=(115.146.95.84 45.113.235.136 45.113.233.153)
 export masternode=`echo ${nodes} | cut -f1 -d' '`
-export 
+export declare -a ports=(5984 15984 25984)
+export masterport=`echo ${ports} | cut -f1 -d' '`
 export declare -a othernodes=`echo ${nodes[@]} | sed s/${masternode}//`
+export declare -a otherports=`echo ${ports[@]} | sed s/${masterport}//`
 export size=${#nodes[@]}
+export sizeworker=${#othernodes[@]}
 export user='admin'
 export pass='admin'
 export VERSION='latest'
@@ -21,7 +24,7 @@ sudo docker pull ibmcom/couchdb3:${VERSION}
 # create docker container
 # stops and removes the docker if already exist
 
-for node in "${nodes[@]}" 
+for node in "${nodes[@]}"
   do
     if [ ! -z $(sudo docker ps --all --filter "name=couchdb${node}" --quiet) ] 
        then
@@ -30,11 +33,11 @@ for node in "${nodes[@]}"
     fi 
 done
 
-for node in "${nodes[@]}" 
+for (( i=0; i<${size}; i++ ));
   do
     sudo docker create\
-      --name couchdb${node}\
-      -p 5984:5984\
+      --name couchdb${nodes[${i}]}\
+      -p ${ports[${i}]}:5984\
       --env COUCHDB_USER=${user}\
       --env COUCHDB_PASSWORD=${pass}\
       --env COUCHDB_SECRET=${cookie}\
@@ -52,22 +55,22 @@ for cont in "${conts[@]}"; do sudo docker start ${cont}; done
 sleep 10
 
 # setup the couchdb cluster
-for node in ${othernodes} 
+for (( i=0; i<${sizeworker}; i++ ));
 do
     curl -XPOST "http://${user}:${pass}@${masternode}:5984/_cluster_setup" \
       --header "Content-Type: application/json"\
       --data "{\"action\": \"enable_cluster\", \"bind_address\":\"0.0.0.0\",\
-             \"username\": \"${user}\", \"password\":\"${pass}\", \"port\": \"5984\",\
-             \"remote_node\": \"${node}\", \"node_count\": \"$(echo ${nodes[@]} | wc -w)\",\
+             \"username\": \"${user}\", \"password\":\"${pass}\", \"port\": \"${otherports[${i}]}\",\
+             \"remote_node\": \"${othernodes[${i}]}\", \"node_count\": \"$(echo ${nodes[@]} | wc -w)\",\
              \"remote_current_user\":\"${user}\", \"remote_current_password\":\"${pass}\"}"
 done
 
-for node in ${othernodes}
+for (( i=0; i<${sizeworker}; i++ ));
 do
     curl -XPOST "http://${user}:${pass}@${masternode}:5984/_cluster_setup"\
       --header "Content-Type: application/json"\
-      --data "{\"action\": \"add_node\", \"host\":\"${node}\",\
-             \"port\": \"5984\", \"username\": \"${user}\", \"password\":\"${pass}\"}"
+      --data "{\"action\": \"add_node\", \"host\":\"${othernodes[${i}]}\",\
+             \"port\": \"${otherports[${i}]}\", \"username\": \"${user}\", \"password\":\"${pass}\"}"
 done
 
 # # create worker master

@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 echo "== Set variables =="
 export declare -a nodes=(115.146.95.84 45.113.235.136 45.113.233.153)
 export declare -a ports=(5984 15984 25984)
