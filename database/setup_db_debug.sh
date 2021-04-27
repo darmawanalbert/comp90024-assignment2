@@ -5,15 +5,18 @@ export declare -a ports=(15984 25984 35984)
 export masterport=`echo ${ports} | cut -f1 -d' '`
 export declare -a othernodes=`echo ${nodes[@]} | sed s/${masternode}//`
 export declare -a otherports=`echo ${ports[@]} | sed s/${masterport}//`
+export declare -a indexdb=(1 2 3)
 export size=${#nodes[@]}
 export sizeworker=${#othernodes[@]}
+export mastervolume='/opt/couchdb/master/data:/opt/couchdb/data'
 export user='admin'
 export pass='admin'
 export VERSION='latest'
 export cookie='a192aeb9904e6590849337933b000c99'
 
 # pull from dockerhub ibmcom
-sudo docker pull ibmcom/couchdb3:${VERSION}
+# sudo docker pull ibmcom/couchdb3:${VERSION}
+sudo docker pull couchdb:${VERSION}
 
 # create docker container
 # stops and removes the docker if already exist
@@ -29,15 +32,31 @@ done
 
 for (( i=0; i<${size}; i++ ));
   do
-    sudo docker create\
-      --name couchdb${nodes[${i}]}\
-      -p ${ports[${i}]}:5984\
-      --env COUCHDB_USER=${user}\
-      --env COUCHDB_PASSWORD=${pass}\
-      --env COUCHDB_SECRET=${cookie}\
-      --env ERL_FLAGS="-setcookie \"${cookie}\" -name \"couchdb@${node}\""\
-      ibmcom/couchdb3:${VERSION}
+    if [ ${nodes[${i}]} == masternode ]
+      then
+        sudo docker create\
+          --name couchdb${masternode}\
+          -p ${masterport}:5984\
+          -v /opt/couchdb/master/data:/opt/couchdb/data\
+          --env COUCHDB_USER=${user}\
+          --env COUCHDB_PASSWORD=${pass}\
+          --env COUCHDB_SECRET=${cookie}\
+          --env ERL_FLAGS="-setcookie \"${cookie}\" -name \"couchdb@${masternode}\""\
+          couchdb:${VERSION}
+      else
+        sudo docker create\
+          --name couchdb${nodes[${i}]}\
+          -p ${ports[${i}]}:5984\
+          -v /opt/couchdb/worker${indexdb[${i}]}/data:/opt/couchdb/data\
+          --env COUCHDB_USER=${user}\
+          --env COUCHDB_PASSWORD=${pass}\
+          --env COUCHDB_SECRET=${cookie}\
+          --env ERL_FLAGS="-setcookie \"${cookie}\" -name \"couchdb@${nodes[${i}]}\""\
+          couchdb:${VERSION}
+    fi
 done
+
+echo "== done creating docker =="
 
 # put in const in docker container IDs
 declare -a conts=(`sudo docker ps --all | grep couchdb | cut -f1 -d' ' | xargs -n${size} -d'\n'`)
@@ -45,7 +64,8 @@ declare -a conts=(`sudo docker ps --all | grep couchdb | cut -f1 -d' ' | xargs -
 # start the containers
 for cont in "${conts[@]}"; do sudo docker start ${cont}; done
 
-# sleep for 10s after starting
+echo "== done starting docker =="
+
 sleep 10
 
 # setup the couchdb cluster
@@ -66,6 +86,25 @@ do
       --data "{\"action\": \"add_node\", \"host\":\"${othernodes[${i}]}\",\
              \"port\": \"${otherports[${i}]}\", \"username\": \"${user}\", \"password\":\"${pass}\"}"
 done
+
+sleep 5
+
+# send empty request to avoid error message when finishing the cluster setup
+curl -XGET "http://${user}:${pass}@${masternode}:15984/"
+
+curl -XPOST "http://${user}:${pass}@${masternode}:15984/_cluster_setup"\
+    --header "Content-Type: application/json" --data "{\"action\": \"finish_cluster\"}"
+
+sleep 5
+
+# check whether cluster configuration is finished
+for (( i=0; i<${sizeworker}; i++ )); do  curl -X GET "http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_membership"; done
+
+# add database to check whether it is created in other nodes as well
+curl -XPUT "http://${user}:${pass}@${masternode}:${masterport}/testdb"
+for (( i=0; i<${sizeworker}; i++ )); do  curl -X GET "http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_all_dbs"; done
+
+# =================================================================================================
 
 # # create worker master
 # docker run --name db-worker -p 25984:5984 -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=admin -e NODENAME=db-worker -v /couchworkerdata:/opt/couchdb/data  -d couchdb:latest
