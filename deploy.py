@@ -203,7 +203,7 @@ def swarm_init(server_instance1):
         return False
 
 def setup_swarm_join(server_list, token_join_swarm):
-    server_list = {x: server_list[x] for x in server_list if x not in {'instance1','instance4'}}
+    server_list = {x: server_list[x] for x in server_list if x not in {'instance1','instance3','instance4'}}
     for server in server_list:
         print(server)
         try:
@@ -232,9 +232,9 @@ def create_nginx_conf(server_list):
 
     fin = open("templates/default.conf.template", "rt")
     template = fin.read()
-    template = template.replace('${INSTANCE1}', server_list['instance1']['addr'])
+    template = template.replace('${INSTANCE1}', instance1['addr'])
     template = template.replace('${INSTANCE2}', server_list['instance2']['addr'])
-    template = template.replace('${INSTANCE3}', server_list['instance3']['addr'])
+    # template = template.replace('${INSTANCE3}', server_list['instance3']['addr'])
 
     fin.close()
 
@@ -254,100 +254,115 @@ def create_constants_file(instance1):
     fout.write(template)
     fout.close()
 
-start = datetime.now()
-print(f"started at {start}")
-
-conn = create_connection(os.getenv('OS_AUTH_URL'),os.getenv('OS_PROJECT_NAME'), os.getenv('OS_USERNAME'),os.getenv('OS_PASSWORD_INPUT'),os.getenv('OS_REGION_NAME'),os.getenv('OS_USER_DOMAIN_NAME'),os.getenv('OS_PROJECT_DOMAIN_ID'),os.getenv('OS_PROJECT_NAME'),os.getenv('OS_IDENTITY_API_VERSION'))
-
-#delete instances, keypairs, and networks in nectar
-delete_all_instances()
-delete_key_pairs()
-delete_network(NETWORK_NAME)
-
-# create instance
-create_instance(SERVER_NAME_LIST)
-
-# docker, docker-compose, docker-machine
-server_list = setup_docker()
-
-# get swarm join token
-swarm_join_token = swarm_init(server_list['instance1'])
-
-# setup join swarm 
-setup_swarm_join(server_list, swarm_join_token)
-                
-try:
-
-    print(f"Copy all {DATABASE_SETUP_FOLDER} folder to remote machine [{server_list['instance4']['addr']}].")
-    command_bash = f"scp -oStrictHostKeyChecking=no -i {server_list['instance4']['keypair']} -r {DATABASE_SETUP_FOLDER} {DEFAULT_USER}@{server_list['instance4']['addr']}:{DATABASE_SETUP_FOLDER} "
+def setup_nginx(instance1):
+    print(f"Copy default.conf to remote machine [{instance1['addr']}].")
+    command_bash = f"scp -oStrictHostKeyChecking=no -i {instance1['keypair']}  {LOCAL_NGINX_FOLDER}/default.conf {DEFAULT_USER}@{instance1['addr']}:default.conf "
     result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
     output, error = result.communicate()
-    print(f"{LOCAL_DOCKER_COMPOSE} has been copied to remote machine [{server_list['instance1']['addr']}].")
+    print(f"default.conf has been copied to remote machine [{instance1['addr']}].")
 
-    # set env variable
-    print(f"Set up couchdb in instance4: {server_list['instance4']['addr']}.")
-    command_bash = f"ssh -oStrictHostKeyChecking=no -i {server_list['instance4']['keypair']} {DEFAULT_USER}@{server_list['instance4']['addr']} chmod +x {DATABASE_SETUP_FOLDER}setup_db.sh && sudo ./{DATABASE_SETUP_FOLDER}setup_db.sh "
+    print(f"Execute NGINX in instance1 [{instance1['addr']}].")
+    command_bash = f"ssh -oStrictHostKeyChecking=no -i {instance1['keypair']} {DEFAULT_USER}@{instance1['addr']} sudo ufw allow 'Nginx HTTP' "
     result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
     output, error = result.communicate()
-    output = output.decode("utf-8").split('\n')
-    print(output)
 
-    # create docker-compose.yml
-    create_docker_compose(server_list['instance4']['addr'])
+    command_bash = f"ssh -oStrictHostKeyChecking=no -i {instance1['keypair']} {DEFAULT_USER}@{instance1['addr']} sudo cp default.conf /etc/nginx/conf.d/load-balancer.conf "
+    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
+    output, error = result.communicate()
 
-    # create docker-compose.yml
-    create_ipdeploy(server_list['instance1']['addr'])
+    command_bash = f"ssh -oStrictHostKeyChecking=no -i {instance1['keypair']} {DEFAULT_USER}@{instance1['addr']} sudo rm /etc/nginx/sites-enabled/default "
+    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
+    output, error = result.communicate()
 
+    command_bash = f"ssh -oStrictHostKeyChecking=no -i {instance1['keypair']} {DEFAULT_USER}@{instance1['addr']} sudo systemctl restart nginx "
+    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
+    output, error = result.communicate()
+
+    print(f"NGINX has been setup in [{instance1['addr']}].")
+
+def setup_docker_compose(instance1):
     # copy docker-compose
-    print(f"Copy {LOCAL_DOCKER_COMPOSE} to remote machine [{server_list['instance1']['addr']}].")
-    command_bash = f"scp -oStrictHostKeyChecking=no -i {server_list['instance1']['keypair']} {LOCAL_DOCKER_COMPOSE} {DEFAULT_USER}@{server_list['instance1']['addr']}:{LOCAL_DOCKER_COMPOSE} "
+    print(f"Copy {LOCAL_DOCKER_COMPOSE} to remote machine [{instance1['addr']}].")
+    command_bash = f"scp -oStrictHostKeyChecking=no -i {instance1['keypair']} {LOCAL_DOCKER_COMPOSE} {DEFAULT_USER}@{instance1['addr']}:{LOCAL_DOCKER_COMPOSE} "
     result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
     output, error = result.communicate()
-    print(f"{LOCAL_DOCKER_COMPOSE} has been copied to remote machine [{server_list['instance1']['addr']}].")
+    print(f"{LOCAL_DOCKER_COMPOSE} has been copied to remote machine [{instance1['addr']}].")
 
     # execute docker stack deploy -c docker-compose.yml
     print(f"Execute docker stack deploy {DOCKER_APP_NAME}.")
-    command_bash = f"ssh -oStrictHostKeyChecking=no -i {server_list['instance1']['keypair']} {DEFAULT_USER}@{server_list['instance1']['addr']} sudo docker stack deploy {DOCKER_APP_NAME} -c {LOCAL_DOCKER_COMPOSE} "
+    command_bash = f"ssh -oStrictHostKeyChecking=no -i {instance1['keypair']} {DEFAULT_USER}@{instance1['addr']} sudo docker stack deploy {DOCKER_APP_NAME} -c {LOCAL_DOCKER_COMPOSE} "
     result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
     output, error = result.communicate()
     output = output.decode("utf-8").split('\n')
     print(output)
 
-    # create nginx/default.conf
-    create_nginx_conf(server_list)
-    create_constants_file(server_list['instance1']['addr'])
-
-    # copy nginx/
-    print(f"Copy default.conf to remote machine [{server_list['instance1']['addr']}].")
-    command_bash = f"scp -oStrictHostKeyChecking=no -i {server_list['instance1']['keypair']}  {LOCAL_NGINX_FOLDER}/default.conf {DEFAULT_USER}@{server_list['instance1']['addr']}:default.conf "
+def setup_couchdb(instance4):
+    print(f"Copy all {DATABASE_SETUP_FOLDER} folder to remote machine [{instance4['addr']}].")
+    command_bash = f"scp -oStrictHostKeyChecking=no -i {instance4['keypair']} -r {DATABASE_SETUP_FOLDER} {DEFAULT_USER}@{instance4['addr']}:{DATABASE_SETUP_FOLDER} "
     result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
     output, error = result.communicate()
-    print(f"default.conf has been copied to remote machine [{server_list['instance1']['addr']}].")
+    print(f"{LOCAL_DOCKER_COMPOSE} has been copied to remote machine [{instance1['addr']}].")
 
-    # execute nginx
-    print(f"Execute NGINX in instance1 [{server_list['instance1']['addr']}].")
-    command_bash = f"ssh -oStrictHostKeyChecking=no -i {server_list['instance1']['keypair']} {DEFAULT_USER}@{server_list['instance1']['addr']} sudo ufw allow 'Nginx HTTP' "
+    # set env variable
+    print(f"Set up couchdb in instance4: {instance4['addr']}.")
+    command_bash = f"ssh -oStrictHostKeyChecking=no -i {instance4['keypair']} {DEFAULT_USER}@{instance4['addr']} chmod +x {DATABASE_SETUP_FOLDER}setup_db.sh && sudo ./{DATABASE_SETUP_FOLDER}setup_db.sh "
     result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
     output, error = result.communicate()
+    output = output.decode("utf-8").split('\n')
+    print(output)
 
-    command_bash = f"ssh -oStrictHostKeyChecking=no -i {server_list['instance1']['keypair']} {DEFAULT_USER}@{server_list['instance1']['addr']} sudo cp default.conf /etc/nginx/conf.d/load-balancer.conf "
-    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-    output, error = result.communicate()
+def main():
+    try:
 
-    command_bash = f"ssh -oStrictHostKeyChecking=no -i {server_list['instance1']['keypair']} {DEFAULT_USER}@{server_list['instance1']['addr']} sudo rm /etc/nginx/sites-enabled/default "
-    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-    output, error = result.communicate()
+        instance1 = instance1
+        instance4 = server_list['instance4']
+        conn = create_connection(os.getenv('OS_AUTH_URL'),os.getenv('OS_PROJECT_NAME'), os.getenv('OS_USERNAME'),os.getenv('OS_PASSWORD_INPUT'),os.getenv('OS_REGION_NAME'),os.getenv('OS_USER_DOMAIN_NAME'),os.getenv('OS_PROJECT_DOMAIN_ID'),os.getenv('OS_PROJECT_NAME'),os.getenv('OS_IDENTITY_API_VERSION'))
 
-    command_bash = f"ssh -oStrictHostKeyChecking=no -i {server_list['instance1']['keypair']} {DEFAULT_USER}@{server_list['instance1']['addr']} sudo systemctl restart nginx "
-    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-    output, error = result.communicate()
+        #delete instances, keypairs, and networks in nectar
+        delete_all_instances()
+        delete_key_pairs()
+        delete_network(NETWORK_NAME)
 
-    print(f"NGINX has been setup in [{server_list['instance1']['addr']}].")
+        # create instance
+        create_instance(SERVER_NAME_LIST)
 
+        # docker, docker-compose, docker-machine
+        server_list = setup_docker(instance1)
 
-except Exception as err:
-    print(f"ERROR: {err}")
+        # get swarm join token
+        swarm_join_token = swarm_init()
 
-print('done.')
-end = datetime.now()
-print(f"ended at {end}, in {end - start}")
+        # setup join swarm 
+        setup_swarm_join(server_list, swarm_join_token)
+
+        # setup couchdb
+        setup_couchdb(instance4)
+
+        # create docker-compose.yml
+        create_docker_compose(instance4['addr'])
+
+        # create docker-compose.yml
+        create_ipdeploy(instance1['addr'])
+
+        # setup docker compose
+        setup_docker_compose(instance1)
+
+        # create nginx/default.conf
+        create_nginx_conf(server_list)
+        create_constants_file(instance1['addr'])
+
+        # setup nginx
+        setup_nginx(instance1)
+
+    except Exception as err:
+        print(f"ERROR: {err}")
+
+if __name__ == "__main__":
+    start = datetime.now()
+    print(f"started at {start}")
+
+    main()
+    
+    print('done.')
+    end = datetime.now()
+    print(f"ended at {end}, in {end - start}")
