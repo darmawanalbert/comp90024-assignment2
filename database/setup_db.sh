@@ -5,7 +5,7 @@ export declare -a ports=(15984 25984 35984)
 export masterport=`echo ${ports} | cut -f1 -d' '`
 export declare -a othernodes=`echo ${nodes[@]} | sed s/${masternode}//`
 export declare -a otherports=`echo ${ports[@]} | sed s/${masterport}//`
-export declare -a indexworker=(2 3)
+export declare -a indexdb=(1 2 3)
 export size=${#nodes[@]}
 export sizeworker=${#othernodes[@]}
 export mastervolume='./data/master/data:/opt/couchdb/data'
@@ -46,12 +46,13 @@ for (( i=0; i<${size}; i++ ));
       sudo docker create\
         --name couchdb${nodes[${i}]}\
         -p ${ports[${i}]}:5984\
-        --volume="./data/worker${indexworker[${i}]}/data:/opt/couchdb/data"\
+        --volume="./data/worker${indexdb[${i}]}/data:/opt/couchdb/data"\
         --env COUCHDB_USER=${user}\
         --env COUCHDB_PASSWORD=${pass}\
         --env COUCHDB_SECRET=${cookie}\
         --env ERL_FLAGS="-setcookie \"${cookie}\" -name \"couchdb@${nodes[${i}]}\""\
         ibmcom/couchdb3:${VERSION}
+    fi
 done
 
 # put in const in docker container IDs
