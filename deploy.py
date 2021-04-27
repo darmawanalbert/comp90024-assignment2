@@ -23,7 +23,6 @@ CLOUD_NAME = 'comp90024'
 NETWORK_NAME = 'qh2-uom'
 FOLDER_NAME = 'keypairs/'
 IMAGE_NAME = 'NeCTAR Ubuntu 20.04 LTS (Focal) amd64'
-conn = openstack.connect(cloud=CLOUD_NAME)
 DEFAULT_USER = "ubuntu"
 LOCAL_DOCKER_COMPOSE = "docker-compose.yml"
 DOCKER_APP_NAME = "comp90024"
@@ -33,6 +32,58 @@ LOCAL_NGINX_FOLDER = "nginx/"
 LOCAL_NGINX_CONF = f"{LOCAL_NGINX_FOLDER}default.conf"
 LOCAL_NGINX_DOCKER_COMPOSE = f"nginx.docker-compose.yml"
 LOCAL_NGINX_DOCKER_FILE = f"nginx.Dockerfile"
+LOCAL_CONSTANTS = f"constans.sh"
+
+# conn = openstack.connect(cloud=CLOUD_NAME)
+conn = None
+
+def create_connection(auth_url, project_name, username, password, region_name,
+                      user_domain, project_domain, app_name, app_version):
+    return openstack.connect(
+        auth_url=auth_url,
+        project_name=project_name,
+        username=username,
+        password=password,
+        region_name=region_name,
+        user_domain_name=user_domain,
+        project_domain_name=project_domain,
+        app_name=app_name,
+        app_version=app_version,
+    )
+
+def delete_all_instances():
+    for server in conn.compute.servers():
+        while True: # magic happens here.
+            try:
+                print("Sleeping for 5s ") # magic happens here.
+                time.sleep(5)
+                conn.compute.delete_server(server)
+            except Exception as err:
+                print(f"ERROR: {err}")
+                continue
+            break
+
+def delete_key_pairs():
+    for keypair in conn.compute.keypairs()
+    while True: # magic happens here.
+        try:
+            print("Sleeping for 5s ") # magic happens here.
+            time.sleep(5)
+            conn.compute.delete_keypair(keypair)
+        except Exception as err:
+            print(f"ERROR: {err}")
+            continue
+        break
+
+def delete_network(network_name):
+    print("Delete Network:")
+
+    networks = conn.network.find_network()
+
+    for subnet in networks.subnet_ids:
+        conn.network.delete_subnet(subnet, ignore_missing=False)
+
+    conn.network.delete_network(networks, ignore_missing=False)
 
 def get_image_id():
     print('image processed..')
@@ -68,7 +119,7 @@ def get_security_group_name():
         conn.network.create_security_group_rule(security_group_id=security_group.id,direction='ingress',remote_ip_prefix='0.0.0.0/0',protocol='tcp',port_range_max='25984',port_range_min='25984',ethertype='IPv4')
     return security_group.name
 
-def create_image(server_name_list):
+def create_instance(server_name_list):
     for server in server_name_list:
         while True: # magic happens here.
             try:
@@ -191,11 +242,30 @@ def create_nginx_conf(server_list):
     fout.write(template)
     fout.close()
 
+def create_constants_file(instance1):
+
+    fin = open("templates/constants.template", "rt")
+    template = fin.read()
+    template = template.replace('${INSTANCE1}', instance1)
+
+    fin.close()
+
+    fout = open(LOCAL_CONSTANTS, "wt")
+    fout.write(template)
+    fout.close()
+
 start = datetime.now()
 print(f"started at {start}")
 
-# create image
-create_image(SERVER_NAME_LIST)
+conn = create_connection(os.getenv('OS_AUTH_URL'),os.getenv('OS_PROJECT_NAME'), os.getenv('OS_USERNAME'),os.getenv('OS_PASSWORD_INPUT'),os.getenv('OS_REGION_NAME'),os.getenv('OS_USER_DOMAIN_NAME'),os.getenv('OS_PROJECT_DOMAIN_ID'),os.getenv('OS_PROJECT_NAME'),os.getenv('OS_IDENTITY_API_VERSION'))
+
+#delete instances, keypairs, and networks in nectar
+delete_all_instances()
+delete_key_pairs()
+delete_network(NETWORK_NAME)
+
+# create instance
+create_instance(SERVER_NAME_LIST)
 
 # docker, docker-compose, docker-machine
 server_list = setup_docker()
@@ -225,6 +295,9 @@ try:
     # create docker-compose.yml
     create_docker_compose(server_list['instance4']['addr'])
 
+    # create docker-compose.yml
+    create_ipdeploy(server_list['instance1']['addr'])
+
     # copy docker-compose
     print(f"Copy {LOCAL_DOCKER_COMPOSE} to remote machine [{server_list['instance1']['addr']}].")
     command_bash = f"scp -oStrictHostKeyChecking=no -i {server_list['instance1']['keypair']} {LOCAL_DOCKER_COMPOSE} {DEFAULT_USER}@{server_list['instance1']['addr']}:{LOCAL_DOCKER_COMPOSE} "
@@ -242,6 +315,7 @@ try:
 
     # create nginx/default.conf
     create_nginx_conf(server_list)
+    create_constants_file(server_list['instance1']['addr'])
 
     # copy nginx/
     print(f"Copy default.conf to remote machine [{server_list['instance1']['addr']}].")

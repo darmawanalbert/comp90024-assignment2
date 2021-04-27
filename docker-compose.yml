@@ -17,11 +17,11 @@ services:
             replicas: 3
         environment:
             DBNAME: testdb
-            DBHOST: http://admin:admin@115.146.94.134:25984/
+            DBHOST: http://admin:admin@115.146.95.84:25984/
         ports:
-        - "8080:18080"
+            - "8080:18080"
         networks:
-        - net
+            - net
     frontend:
         build:
             context: .
@@ -42,7 +42,7 @@ services:
         command: python -u /app/app.py
         environment:
             DBNAME: testdb
-            DBHOST: "http://admin:admin@115.146.94.134:15984/"
+            DBHOST: "http://admin:admin@115.146.95.84:15984/"
             QUERY: jokowi
         labels:
             - "swarm.cronjob.enable=true"

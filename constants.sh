@@ -1,0 +1,2 @@
+export INSTANCE1=45.113.232.232
+export APP_NAME=comp90024
