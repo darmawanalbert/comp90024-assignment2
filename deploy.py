@@ -34,7 +34,22 @@ LOCAL_NGINX_DOCKER_COMPOSE = f"nginx.docker-compose.yml"
 LOCAL_NGINX_DOCKER_FILE = f"nginx.Dockerfile"
 LOCAL_CONSTANTS = f"constans.sh"
 
-conn = openstack.connect(cloud=CLOUD_NAME)
+# conn = openstack.connect(cloud=CLOUD_NAME)
+conn = None
+
+def create_connection(auth_url, project_name, username, password, region_name,
+                      user_domain, project_domain, app_name, app_version):
+    return openstack.connect(
+        auth_url=auth_url,
+        project_name=project_name,
+        username=username,
+        password=password,
+        region_name=region_name,
+        user_domain_name=user_domain,
+        project_domain_name=project_domain,
+        app_name=app_name,
+        app_version=app_version,
+    )
 
 def delete_all_instances():
     for server in conn.compute.servers():
@@ -241,6 +256,8 @@ def create_constants_file(instance1):
 
 start = datetime.now()
 print(f"started at {start}")
+
+conn = create_connection(os.getenv('OS_AUTH_URL'),os.getenv('OS_PROJECT_NAME'), os.getenv('OS_USERNAME'),os.getenv('OS_PASSWORD_INPUT'),os.getenv('OS_REGION_NAME'),os.getenv('OS_USER_DOMAIN_NAME'),os.getenv('OS_PROJECT_DOMAIN_ID'),os.getenv('OS_PROJECT_NAME'),os.getenv('OS_IDENTITY_API_VERSION'))
 
 #delete instances, keypairs, and networks in nectar
 delete_all_instances()
