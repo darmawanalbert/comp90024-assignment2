@@ -1,10 +1,15 @@
 import tweepy
 import json 
 import pandas as pd
+import couchdb
+from urllib3.exceptions import ProtocolError
 
 LOCATION = [144.5552,-38.1207,145.5494,-37.5803]
 VIC = [139.19,-38.72,149.7,-34.14]
 AUS = [113.62,-44.1,153.14,-10.75]
+ADDRESS='http://admin:admin@115.146.95.84:15984/'
+DB_NAME = 'twitter_db_test'
+
 
 creds_file = pd.read_csv('twitter-api-tokens.csv',encoding='utf-8',sep=';')
 
@@ -21,40 +26,44 @@ auth = tweepy.OAuthHandler(consumer_api_key,consumer_secret_key)
 auth.set_access_token(consumer_access_token,consumer_token_secret)
 
 #API Object
-api = tweepy.API(auth)
+api = tweepy.API(auth, wait_on_rate_limit=True)
 
-#Temporary loading of json file instead of couchdb
-#def load_json(file_path):
+def connection_to_db():
+    try:
+        server = couchdb.Server(ADDRESS)
+        #server.resource.credentials = (USERNAME,PASSWORD)
+        print('Connected to server')
+    except Exception as e:
+        print('Server not found')
 
+    try:
+        db = server[DB_NAME]
+        print('db found')
+    except Exception as e:
+        print(e)
+        print('NO DB FOUND')
+        exit(-1)
+    return db
 
+db_conn = connection_to_db()
 
 class CustomStreamListener(tweepy.StreamListener):
     def on_status(self,status):
         print(status.text)
     
     def on_data(self, data):
-        
-        tweet = json.loads(data)
-        tweet_id= tweet['id_str']
-        tweet_date = tweet['created_at']
-        tweet_text = tweet['text']
-        tweet_city = tweet['place']['full_name']
-        tweet_loc = tweet['place']['bounding_box']['coordinates']
-
-        tweet_dict= {'id_str':tweet_id, 'created_at': tweet_date, 'text':tweet_text,'city_name':tweet_city,'coordinates':tweet_loc}
-        
-        tweet_str = str(tweet_dict)+"\n"
-        
-        #Temporarily store all the harvested tweet in a json file 
         try:
-            with open('tweets_collected.json', 'a', encoding='utf-8') as fp:
-                fp.write(tweet_str)
-          
+            # with open('tweets_collected.json', 'a', encoding='utf-8') as fp:
+            #    # fp.write('\t')
+            #     print(data)
+            #     fp.write(data)
+            #     print('Written')       
+            tweet_data = json.loads(data)
+            db_conn.save(tweet_data)  
+            print("Written in DB")
         except BaseException as e:
             print("Error on data: %s" % str(e))
        
-      
-    
     def on_error(self,status):
         print(status)
     
@@ -68,20 +77,18 @@ stream = tweepy.Stream(auth=api.auth, listener=stream_listener)
 while True:
     try:
         stream.filter(locations = AUS,languages=['en'])
+    
     except ConnectionRefusedError:
         print("Error: stream connection failed")
         continue
     except FileNotFoundError as e:
         print(e)
         exit(-1)
-
-    #Rate Limit Exception 
     except tweepy.RateLimitError:
         print("Hit Twitter API Rate limit")
-        for i in range(3, 0, -1):
-            print("Wait for {} mins.".format(i * 5))
-            time.sleep(5 * 60)
-    
+        #Sleep for 20 mins
+        time.sleep(20*60)
+        continue
     except Exception as e:
         print(e)
         continue
