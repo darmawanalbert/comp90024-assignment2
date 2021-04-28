@@ -116,4 +116,4 @@ def main():
         topic_summary = get_relevant_articles(topics_dict[i])
         print(topic_summary)
 
-main()
+main() 
