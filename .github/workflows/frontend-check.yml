@@ -1,0 +1,24 @@
+name: Frontend Build Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v2
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: '14.16.1'
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: yarn install --frozen-lockfile
+    - name: Build the source code
+      working-directory: ./frontend
+      run: yarn build
