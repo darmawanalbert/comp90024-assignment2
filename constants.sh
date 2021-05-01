@@ -5,5 +5,5 @@
 # Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
 # Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
-export INSTANCE1=45.113.235.136
+export INSTANCE1=45.113.233.151
 export APP_NAME=comp90024

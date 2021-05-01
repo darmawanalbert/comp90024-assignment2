@@ -29,6 +29,7 @@ LOCAL_DOCKER_COMPOSE = "docker-compose.yml"
 DOCKER_APP_NAME = "comp90024"
 CREATE_INSTANCE_YML = "instance.yml"
 DATABASE_SETUP_FOLDER = "database/"
+HARVESTERS_FOLDER = "harvesters/"
 LOCAL_NGINX_FOLDER = "nginx/"
 LOCAL_NGINX_CONF = f"{LOCAL_NGINX_FOLDER}default.conf"
 LOCAL_NGINX_DOCKER_COMPOSE = f"nginx.docker-compose.yml"
@@ -203,6 +204,17 @@ def setup_swarm_join(server_list, token_join_swarm):
         except Exception as err:
             print(f"ERROR {err}")
 
+def create_harvester_docker_compose(instance4):
+    fin = open("templates/harvesters.docker-compose.yml.template", "rt")
+    template = fin.read()
+    template = template.replace('${INSTANCE4}', instance4)
+
+    fin.close()
+
+    fout = open("harvesters/docker-compose.yml", "wt")
+    fout.write(template)
+    fout.close()
+
 def create_docker_compose(instance4):
     
     fin = open("templates/docker-compose.template", "rt")
@@ -298,6 +310,19 @@ def setup_couchdb(instance4):
     output = output.decode("utf-8").split('\n')
     print(output)
 
+def setup_harvester(instance4):
+    print(f"Copy all harvester folder to remote machine [{instance4['addr']}].")
+    command_bash = f"scp -oStrictHostKeyChecking=no -i {instance4['keypair']} -r {HARVESTERS_FOLDER} {DEFAULT_USER}@{instance4['addr']}:{HARVESTERS_FOLDER} "
+    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
+    output, error = result.communicate()
+    print(f"{HARVESTERS_FOLDER} has been copied to remote machine [{instance4['addr']}].")
+
+    print(f"Execute harvester app [{instance4['addr']}].")
+    command_bash = f"ssh -oStrictHostKeyChecking=no -i {instance4['keypair']} {DEFAULT_USER}@{instance4['addr']} sudo docker-compose -f {HARVESTERS_FOLDER}docker-compose.yml up -d"
+    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
+    output, error = result.communicate()
+    print(f"Execute harvester app in [{instance4['addr']}].")
+
 def delete_local_keypairs():
     print("Deleting local keypairs.")
     folder = './keypairs/'
@@ -342,6 +367,10 @@ def deploy_all():
 
         # setup couchdb
         setup_couchdb(instance4)
+
+        # setup harvester
+        create_harvester_docker_compose(instance4['addr'])
+        setup_harvester(instance4)
 
         # create docker-compose.yml
         create_docker_compose(instance4['addr'])

@@ -1,8 +1,9 @@
 FROM python:3.8
 
 COPY requirements.txt /app/requirements.txt
-COPY app.py /app/app.py
+COPY twitter-api-tokens.csv /app/twitter-api-tokens.csv
+COPY tweet_harvester.py /app/tweet_harvester.py
 
 RUN pip install -r /app/requirements.txt
 
-CMD ["python","-u","/app/app.py"]
+CMD ["python","-u","/app/tweet_harvester.py"]
