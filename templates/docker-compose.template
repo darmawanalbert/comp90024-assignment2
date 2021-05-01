@@ -14,12 +14,12 @@ services:
         image: wildananugrah/service
         deploy:
             mode: replicated
-            replicas: 3
+            replicas: 2
         environment:
             DBNAME: testdb
-            DBHOST: http://admin:admin@${INSTANCE4}:25984/
+            DBHOST: http://admin:admin@${INSTANCE4}:15984/
         ports:
-            - "8080:18080"
+            - "8080:8080"
         networks:
             - net
     frontend:
@@ -29,7 +29,7 @@ services:
         image: wildananugrah/frontend
         deploy:
             mode: replicated
-            replicas: 3
+            replicas: 2
         ports:
             - "81:3000"
         networks:

@@ -13,14 +13,14 @@
 # docker image rm $(docker images -aq)
 
 # build new images
-docker-compose build
+# docker-compose build
 
 # push new image to docker hub
-docker-compose push 
+# docker-compose push 
 
 # pre-requisite
-sudo rm -r keypairs/*
-sudo rm ~/.ssh/known_hosts; touch ~/.ssh/known_hosts
+# sudo rm -r keypairs/*
+# sudo rm ~/.ssh/known_hosts; touch ~/.ssh/known_hosts
 
 # openrc setup
 source openrc.sh
