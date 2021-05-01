@@ -3,15 +3,18 @@ import json
 import pandas as pd
 import couchdb
 from urllib3.exceptions import ProtocolError
+import os
 
 LOCATION = [144.5552,-38.1207,145.5494,-37.5803]
 VIC = [139.19,-38.72,149.7,-34.14]
 AUS = [113.62,-44.1,153.14,-10.75]
-ADDRESS='http://admin:admin@115.146.95.84:15984/'
-DB_NAME = 'twitter_db_test'
+# ADDRESS='http://admin:admin@45.113.232.227:15984/'
+# DB_NAME = 'twitter_db_test'
+ADDRESS = os.environ.get('ADDRESS') if os.environ.get('ADDRESS') != None else "http://admin:admin@localhost:15984/" 
+DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "twitter_db_test" 
+API_TOKENS = os.environ.get('API_TOKENS') if os.environ.get('API_TOKENS') != None else "twitter-api-tokens.csv" 
 
-
-creds_file = pd.read_csv('twitter-api-tokens.csv',encoding='utf-8',sep=';')
+creds_file = pd.read_csv(API_TOKENS,encoding='utf-8',sep=';')
 
 #Gotta iterate through this later to fully utilize all our keys 
 consumer_api_key = creds_file['API_KEY'][0]
@@ -30,6 +33,7 @@ api = tweepy.API(auth, wait_on_rate_limit=True)
 
 def connection_to_db():
     try:
+        print(f"ADDRESS: {ADDRESS}")
         server = couchdb.Server(ADDRESS)
         #server.resource.credentials = (USERNAME,PASSWORD)
         print('Connected to server')
