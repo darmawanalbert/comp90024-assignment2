@@ -1,15 +1,17 @@
+import sys
+sys.path.append('../')
+
 import tweepy
 import json 
 import pandas as pd
-import couchdb
+from database.db_utils import DB_Utils
 from urllib3.exceptions import ProtocolError
 
 LOCATION = [144.5552,-38.1207,145.5494,-37.5803]
 VIC = [139.19,-38.72,149.7,-34.14]
 AUS = [113.62,-44.1,153.14,-10.75]
-ADDRESS='http://admin:admin@115.146.95.84:15984/'
-DB_NAME = 'twitter_db_test'
 
+DB_NAME = 'twitter_db_test'
 
 creds_file = pd.read_csv('twitter-api-tokens.csv',encoding='utf-8',sep=';')
 
@@ -28,39 +30,17 @@ auth.set_access_token(consumer_access_token,consumer_token_secret)
 #API Object
 api = tweepy.API(auth, wait_on_rate_limit=True)
 
-def connection_to_db():
-    try:
-        server = couchdb.Server(ADDRESS)
-        #server.resource.credentials = (USERNAME,PASSWORD)
-        print('Connected to server')
-    except Exception as e:
-        print('Server not found')
-
-    try:
-        db = server[DB_NAME]
-        print('db found')
-    except Exception as e:
-        print(e)
-        print('NO DB FOUND')
-        exit(-1)
-    return db
-
-db_conn = connection_to_db()
+db_conn =DB_Utils()
+db_conn.db_connect(DB_NAME)
 
 class CustomStreamListener(tweepy.StreamListener):
     def on_status(self,status):
         print(status.text)
     
     def on_data(self, data):
-        try:
-            # with open('tweets_collected.json', 'a', encoding='utf-8') as fp:
-            #    # fp.write('\t')
-            #     print(data)
-            #     fp.write(data)
-            #     print('Written')       
+        try:      
             tweet_data = json.loads(data)
-            db_conn.save(tweet_data)  
-            print("Written in DB")
+            db_conn.save(DB_NAME,tweet_data)  
         except BaseException as e:
             print("Error on data: %s" % str(e))
        
