@@ -48,8 +48,8 @@ const MenuList = ({ isOpen }) => {
                 <MenuItem to="/analysis">Analysis</MenuItem>
                 <MenuItem to="/about">About</MenuItem>
                 {colorMode === 'light'
-                    ? (<IconButton aria-label="Dark mode" icon={<MoonIcon />} onClick={toggleColorMode} />)
-                    : (<IconButton aria-label="Light mode" icon={<SunIcon />} onClick={toggleColorMode} />
+                    ? (<IconButton aria-label="Dark mode" icon={<MoonIcon />} onClick={toggleColorMode} variant="ghost" colorScheme="teal.400" />)
+                    : (<IconButton aria-label="Light mode" icon={<SunIcon />} onClick={toggleColorMode} variant="ghost" colorScheme="teal.400" />
                     )}
                 <Spacer />
                 <GithubButton />

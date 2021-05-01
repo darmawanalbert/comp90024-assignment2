@@ -8,7 +8,6 @@
 upstream backend {
     server ${INSTANCE1}:81;
     server ${INSTANCE2}:81;
-    server ${INSTANCE3}:81;
 }
 
 server {
