@@ -34,13 +34,16 @@ if [ ! -z $(sudo docker ps --all --filter "name=mastercouchdb" --quiet) ]
 fi
 
 sudo docker create\
-  --name mastercouchdb -p\
-  ${masterport}:5984\
+  --name mastercouchdb\
+  -p ${masterport}:5984\
+  -p 5986:5986\
+  -p 4369:4369\
+  -p 9100:9100\
   -v /opt/couchdb/master/data:/opt/couchdb/data\
   --env COUCHDB_USER=${user}\
   --env COUCHDB_PASSWORD=${pass}\
-  --env COUCHDB_SECRET=${cookie}\\
-  --env ERL_FLAGS="-setcookie \"${cookie}\" -name \"mastercouchdb\""\\
+  --env COUCHDB_SECRET=${cookie}\
+  --env ERL_FLAGS="-setcookie \"${cookie}\" -name \"couchdb@${masternode}\""\
   couchdb:${VERSION}
 
 # for node in "${nodes[@]}"
@@ -92,35 +95,41 @@ echo "== done starting docker =="
 sleep 10
 
 sudo docker exec mastercouchdb bash -c "echo \"-setcookie \"${cookie}\"\" >> /opt/couchdb/etc/vm.args"
-sudo docker exec mastercouchdb bash -c "echo \"-name mastercouchdb\" >> /opt/couchdb/etc/vm.args"
+sudo docker exec mastercouchdb bash -c "echo \"-name \"couchdb@${masternode}\"\" >> /opt/couchdb/etc/vm.args"
 
 sudo docker restart mastercouchdb
 
-sleep 20
+sleep 15
 
 # setup the couchdb cluster
 for (( i=0; i<${sizeworker}; i++ ));
-do
-    curl -XPOST "http://${user}:${pass}@${masternode}:${masterport}/_cluster_setup" \
+  do
+    echo ${othernodes[${i}]}
+    echo ${otherports[${i}]}
+    curl -XPOST "http://${user}:${pass}@${masternode}:${masterport}/_cluster_setup"\
       --header "Content-Type: application/json"\
-      --data "{\"action\": \"enable_cluster\", \"bind_address\":\"0.0.0.0\",\
-             \"username\": \"${user}\", \"password\":\"${pass}\", \"port\": \"${otherports[${i}]}\",\
-             \"remote_node\": \"${othernodes[${i}]}\", \"node_count\": \"$(echo ${nodes[@]} | wc -w)\",\
+      --data "{\"action\":\"enable_cluster\", \"bind_address\":\"0.0.0.0\",\
+             \"username\":\"${user}\", \"password\":\"${pass}\", \"port\":\"${otherports[${i}]}\",\
+             \"remote_node\":\"${othernodes[${i}]}\", \"node_count\":\"$(echo ${nodes[@]} | wc -w)\",\
              \"remote_current_user\":\"${user}\", \"remote_current_password\":\"${pass}\"}"
 done
 
 for (( i=0; i<${sizeworker}; i++ ));
-do
+  do
+    echo ${othernodes[${i}]}
+    echo ${otherports[${i}]}
     curl -XPOST "http://${user}:${pass}@${masternode}:${masterport}/_cluster_setup"\
       --header "Content-Type: application/json"\
-      --data "{\"action\": \"add_node\", \"host\":\"${othernodes[${i}]}\",\
-             \"port\": \"${otherports[${i}]}\", \"username\": \"${user}\", \"password\":\"${pass}\"}"
+      --data "{\"action\":\"add_node\", \"host\":\"${othernodes[${i}]}\",\
+             \"port\":\"${otherports[${i}]}\", \"username\":\"${user}\", \"password\":\"${pass}\"}"
 done
 
 sleep 10
 
 # send empty request to avoid error message when finishing the cluster setup
 curl -XGET "http://${user}:${pass}@${masternode}:${masterport}/"
+
+sleep 5
 
 curl -XPOST "http://${user}:${pass}@${masternode}:${masterport}/_cluster_setup"\
     --header "Content-Type: application/json" --data "{\"action\": \"finish_cluster\"}"

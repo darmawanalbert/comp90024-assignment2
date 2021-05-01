@@ -27,13 +27,16 @@ if [ ! -z $(sudo docker ps --all --filter "name=workercouchdb${workerindex}" --q
 fi
 
 sudo docker create\
-  --name workercouchdb${workerindex} -p\
-  ${workerport}:5984\
+  --name workercouchdb${workerindex}\
+  -p ${workerport}:5984\
+  -p 5986:5986\
+  -p 4369:4369\
+  -p 9100:9100\
   -v /opt/couchdb/worker${workerindex}/data:/opt/couchdb/data\
   --env COUCHDB_USER=${user}\
   --env COUCHDB_PASSWORD=${pass}\
-  --env COUCHDB_SECRET=${cookie}\\
-  --env ERL_FLAGS="-setcookie \"${cookie}\" -name \"workercouchdb${workerindex}\""\\
+  --env COUCHDB_SECRET=${cookie}\
+  --env ERL_FLAGS="-setcookie \"${cookie}\" -name \"couchdb@${workernode}\""\
   couchdb:${VERSION}
 
 # start the container
@@ -42,7 +45,7 @@ sudo docker start workercouchdb${workerindex}
 sleep 10
 
 sudo docker exec workercouchdb${workerindex} bash -c "echo \"-setcookie \"${cookie}\"\" >> /opt/couchdb/etc/vm.args"
-sudo docker exec workercouchdb${workerindex} bash -c "echo \"-name \"workercouchdb${workerindex}\"\" >> /opt/couchdb/etc/vm.args"
+sudo docker exec workercouchdb${workerindex} bash -c "echo \"-name \"couchdb@${workernode}\"\" >> /opt/couchdb/etc/vm.args"
 
 sudo docker restart workercouchdb${workerindex}
 
