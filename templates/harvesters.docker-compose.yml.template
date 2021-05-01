@@ -7,5 +7,5 @@ services:
     image: harvester
     environment:
       DB_NAME: twitter_db_test
-      ADDRESS: http://admin:admin@45.113.234.156:15984/
+      ADDRESS: http://admin:admin@${INSTANCE4}:15984/
       API_TOKENS: /app/twitter-api-tokens.csv
