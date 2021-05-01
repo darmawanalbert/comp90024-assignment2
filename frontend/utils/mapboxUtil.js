@@ -11,64 +11,81 @@ Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 // Inspired from: https://dev.to/naomigrace/how-to-integrate-mapbox-gl-js-in-your-next-js-project-without-react-map-gl-or-a-react-wrapper-library-50f#2-adding-a-map
 
 const addDataLayer = (map, data) => {
-    map.addSource('earthquakes', {
+    // map.addSource('earthquakes', {
+    //     type: 'geojson',
+    //     data,
+    //     cluster: true,
+    //     clusterMaxZoom: 14,
+    //     clusterRadius: 50,
+    // });
+
+    // map.addLayer({
+    //     id: 'clusters',
+    //     type: 'circle',
+    //     source: 'earthquakes',
+    //     filter: ['has', 'point_count'],
+    //     paint: {
+    //         'circle-color': [
+    //             'step',
+    //             ['get', 'point_count'],
+    //             '#51bbd6',
+    //             100,
+    //             '#f1f075',
+    //             750,
+    //             '#f28cb1',
+    //         ],
+    //         'circle-radius': [
+    //             'step',
+    //             ['get', 'point_count'],
+    //             20,
+    //             100,
+    //             30,
+    //             750,
+    //             40,
+    //         ],
+    //     },
+    // });
+
+    // map.addLayer({
+    //     id: 'cluster-count',
+    //     type: 'symbol',
+    //     source: 'earthquakes',
+    //     filter: ['has', 'point_count'],
+    //     layout: {
+    //         'text-field': '{point_count_abbreviated}',
+    //         'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+    //         'text-size': 12,
+    //     },
+    // });
+
+    // map.addLayer({
+    //     id: 'unclustered-point',
+    //     type: 'circle',
+    //     source: 'earthquakes',
+    //     filter: ['!', ['has', 'point_count']],
+    //     paint: {
+    //         'circle-color': '#11b4da',
+    //         'circle-radius': 4,
+    //         'circle-stroke-width': 1,
+    //         'circle-stroke-color': '#fff',
+    //     },
+    // });
+
+    map.addSource('cities', {
         type: 'geojson',
         data,
-        cluster: true,
-        clusterMaxZoom: 14,
-        clusterRadius: 50,
+        cluster: false,
     });
 
     map.addLayer({
-        id: 'clusters',
-        type: 'circle',
-        source: 'earthquakes',
-        filter: ['has', 'point_count'],
+        id: 'city',
+        type: 'fill',
+        source: 'cities', // reference the data source
+        layout: {},
         paint: {
-            'circle-color': [
-                'step',
-                ['get', 'point_count'],
-                '#51bbd6',
-                100,
-                '#f1f075',
-                750,
-                '#f28cb1',
-            ],
-            'circle-radius': [
-                'step',
-                ['get', 'point_count'],
-                20,
-                100,
-                30,
-                750,
-                40,
-            ],
-        },
-    });
-
-    map.addLayer({
-        id: 'cluster-count',
-        type: 'symbol',
-        source: 'earthquakes',
-        filter: ['has', 'point_count'],
-        layout: {
-            'text-field': '{point_count_abbreviated}',
-            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-            'text-size': 12,
-        },
-    });
-
-    map.addLayer({
-        id: 'unclustered-point',
-        type: 'circle',
-        source: 'earthquakes',
-        filter: ['!', ['has', 'point_count']],
-        paint: {
-            'circle-color': '#11b4da',
-            'circle-radius': 4,
-            'circle-stroke-width': 1,
-            'circle-stroke-color': '#fff',
-        },
+            'fill-color': '#0080ff', // blue color fill
+            'fill-opacity': 0.5
+        }
     });
 };
 
@@ -76,6 +93,7 @@ const initialiseMap = (mapboxgl, map) => {
     map.on('click', 'clusters', (e) => {
         const features = map.queryRenderedFeatures(e.point, {
             layers: ['clusters'],
+            // layers: ['cities_top50_simplified'],
         });
         const clusterId = features[0].properties.cluster_id;
         map.getSource('earthquakes').getClusterExpansionZoom(
