@@ -12,7 +12,6 @@ export const MAPBOX_PUBLIC_KEY = 'pk.eyJ1IjoiZGFybWF3YW5hbGJlcnQiLCJhIjoiY2tuc2l
 
 // Fetcher Configuration
 export const API_REFRESH_INTERVAL = 5000;
-export const API_URL = 'localhost:3000/api';
 
 // GitHub Configuration
 export const GITHUB_REPO_URL = 'https://github.com/darmawanalbert/comp90024-assignment2';

@@ -13,8 +13,9 @@ import { Heading, Container, Center } from '@chakra-ui/react';
 import { Line } from 'react-chartjs-2';
 
 import { Navbar, TwitterCard } from '../components/index';
+import { useTweetData } from '../utils/fetcher';
 
-export default function Analysis() {
+export default function Analysis({ apiUrl }) {
     const data = {
         labels: ['1', '2', '3', '4', '5', '6'],
         datasets: [
@@ -28,6 +29,8 @@ export default function Analysis() {
         ],
     };
 
+    const { tweetData, isTweetLoading, isTweetError } = useTweetData(apiUrl);
+
     const options = {
         scales: {
             yAxes: [
@@ -39,6 +42,7 @@ export default function Analysis() {
             ],
         },
     };
+    alert(JSON.stringify(tweetData));
     return (
         <div>
             <Head>
@@ -52,15 +56,27 @@ export default function Analysis() {
                         <Heading>Analysis with AURIN</Heading>
                     </Center>
                     <Line data={data} options={options} />
-                    <TwitterCard
-                        displayName="Albert Darmawan"
-                        username="darmawan2502"
-                        tweet="Wow this is awesome!"
-                        time="10:50 PM"
-                        date="Apr 23, 2021"
-                    />
+                    {/* {!isTweetLoading && !isTweetError ? tweetData.map((item, index) => (
+                        <TwitterCard
+                            key={item.tweet_id}
+                            displayName={item.author_screen_name}
+                            username="darmawan2502"
+                            tweet={item.text}
+                            time="10:50 PM"
+                            date={item.posted_at}
+                        />
+                    )) : null} */}
                 </Container>
             </main>
         </div>
     );
+}
+
+export async function getStaticProps() {
+    const apiUrl = process.env.API_URL;
+    return {
+        props: {
+            apiUrl,
+        },
+    };
 }

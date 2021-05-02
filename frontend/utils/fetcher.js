@@ -8,15 +8,14 @@ Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 */
 
 import useSWR from 'swr';
-import { API_URL } from './config';
 
-const useMapInfo = () => {
-    const { data, error } = useSWR(`${API_URL}/examples`);
+const useTweetData = (apiUrl) => {
+    const { data, error } = useSWR(`${apiUrl}`);
     return {
-        mapInfo: data,
+        tweetData: data,
         isLoading: !error && !data,
         isError: error,
     };
 };
 
-export { useMapInfo };
+export { useTweetData };
