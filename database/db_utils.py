@@ -7,7 +7,8 @@
 
 import couchdb
 
-ADDRESS='http://admin:admin@115.146.95.84:15984/'
+#ADDRESS='http://admin:admin@115.146.95.84:15984/'
+ADDRESS = os.environ.get('ADDRESS') if os.environ.get('ADDRESS') != None else "http://admin:admin@localhost:15984/"
 
 # A class to create a database instance
 # The instance will automatically connect to the CouchDB hosted in MRC
