@@ -16,6 +16,7 @@ export cookie='a192aeb9904e6590849337933b000c99'
 
 # pull from dockerhub ibmcom
 sudo docker pull ibmcom/couchdb3:${VERSION}
+sudo docker network create --driver bridge couch
 
 # create docker container
 # stops and removes the docker if already exist
@@ -28,15 +29,19 @@ fi
 
 sudo docker create\
   --name workercouchdb${workerindex}\
+  --net=couch\
+  --hostname couchdb@${workernode}\
   -p ${workerport}:5984\
-  -p 5986:5986\
   -p 4369:4369\
   -p 9100:9100\
   -v /opt/couchdb/worker${workerindex}/data:/opt/couchdb/data\
+  -v /tmp/my.cookie:/opt/couchdb/.erlang.cookie\
+  --env NODENAME=couchdb@${workernode}\
   --env COUCHDB_USER=${user}\
   --env COUCHDB_PASSWORD=${pass}\
   --env COUCHDB_SECRET=${cookie}\
-  --env ERL_FLAGS="-setcookie \"${cookie}\" -name \"couchdb@${workernode}\""\
+  --env ERL_FLAGS="-setcookie \"${cookie}\" -name \"couchdb@${workernode}\"\
+  -kernel \"inet_dist_listen_min 9100\" -kernel \"inet_dist_listen_max 9100\""\
   couchdb:${VERSION}
 
 # start the container
@@ -46,6 +51,8 @@ sleep 10
 
 sudo docker exec workercouchdb${workerindex} bash -c "echo \"-setcookie \"${cookie}\"\" >> /opt/couchdb/etc/vm.args"
 sudo docker exec workercouchdb${workerindex} bash -c "echo \"-name \"couchdb@${workernode}\"\" >> /opt/couchdb/etc/vm.args"
+sudo docker exec workercouchdb${workerindex} bash -c "echo \"-kernel \"inet_dist_listen_min\" \"9100\"\" >> /opt/couchdb/etc/vm.args"
+sudo docker exec workercouchdb${workerindex} bash -c "echo \"-kernel \"inet_dist_listen_max\" \"9100\"\" >> /opt/couchdb/etc/vm.args"
 
 sudo docker restart workercouchdb${workerindex}
 
