@@ -14,6 +14,7 @@ sleep 5
 
 # create database
 curl -X PUT http://admin:admin@127.0.0.1:15984/testdb
+curl -X PUT http://admin:admin@127.0.0.1:15984/twitter_db_test
 
 # setup cluster
 curl -X PUT http://admin:admin@127.0.0.1:15984/_users

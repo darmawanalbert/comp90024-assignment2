@@ -6,6 +6,7 @@ import json
 import pandas as pd
 from database.db_utils import DB_Utils
 from urllib3.exceptions import ProtocolError
+import os
 
 LOCATION = [144.5552,-38.1207,145.5494,-37.5803]
 VIC = [139.19,-38.72,149.7,-34.14]
