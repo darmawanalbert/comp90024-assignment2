@@ -1,2 +1,4 @@
 venv/
 keypairs/
+database/_pycache_
+harvesters/_pycache_
