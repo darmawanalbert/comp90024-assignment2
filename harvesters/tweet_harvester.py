@@ -11,9 +11,11 @@ LOCATION = [144.5552,-38.1207,145.5494,-37.5803]
 VIC = [139.19,-38.72,149.7,-34.14]
 AUS = [113.62,-44.1,153.14,-10.75]
 
-DB_NAME = 'twitter_db_test'
+#DB_NAME = 'twitter_db_test'
+DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "twitter_db_test" 
+API_TOKENS = os.environ.get('API_TOKENS') if os.environ.get('API_TOKENS') != None else "twitter-api-tokens.csv" 
 
-creds_file = pd.read_csv('twitter-api-tokens.csv',encoding='utf-8',sep=';')
+creds_file = pd.read_csv(API_TOKENS,encoding='utf-8',sep=';')
 
 #Gotta iterate through this later to fully utilize all our keys 
 consumer_api_key = creds_file['API_KEY'][0]
