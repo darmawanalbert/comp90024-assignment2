@@ -9,7 +9,10 @@ from flask import Flask, jsonify, request
 import requests
 import os
 import json
+from flask_cors import CORS
+
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 DB_HOST = os.environ.get('DBHOST') if os.environ.get('DBHOST') != None else "http://admin:admin@127.0.0.1:5984/"
 DB_NAME = os.environ.get('DBNAME') if os.environ.get('DBNAME') != None else "testdb"
@@ -33,4 +36,4 @@ def get():
     return jsonify({ 'number' : len(response_json['docs']), 'data': response_json })
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=18080, debug=True)
+    app.run(host="0.0.0.0", port=8080, debug=True)

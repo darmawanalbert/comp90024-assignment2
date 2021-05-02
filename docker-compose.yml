@@ -14,14 +14,14 @@ services:
         image: wildananugrah/service
         deploy:
             mode: replicated
-            replicas: 3
+            replicas: 2
         environment:
             DBNAME: testdb
-            DBHOST: http://admin:admin@115.146.94.134:25984/
+            DBHOST: http://admin:admin@45.113.232.227:15984/
         ports:
-        - "8080:18080"
+            - "8080:8080"
         networks:
-        - net
+            - net
     frontend:
         build:
             context: .
@@ -29,7 +29,7 @@ services:
         image: wildananugrah/frontend
         deploy:
             mode: replicated
-            replicas: 3
+            replicas: 2
         ports:
             - "81:3000"
         networks:
@@ -42,7 +42,7 @@ services:
         command: python -u /app/app.py
         environment:
             DBNAME: testdb
-            DBHOST: "http://admin:admin@115.146.94.134:15984/"
+            DBHOST: "http://admin:admin@45.113.232.227:15984/"
             QUERY: jokowi
         labels:
             - "swarm.cronjob.enable=true"
@@ -52,3 +52,4 @@ services:
             - net
 networks:
     net:
+        name: net

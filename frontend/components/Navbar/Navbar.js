@@ -23,8 +23,7 @@ const NavbarContainer = ({ children, ...restProps }) => (
         wrap="wrap"
         w="100%"
         p={4}
-        bg={['teal.400', 'teal.400', 'teal.400', 'teal.400']}
-        color={['white', 'white', 'white', 'white']}
+        bg="teal.400"
         {...restProps}
     >
         {children}

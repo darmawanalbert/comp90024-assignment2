@@ -45,7 +45,7 @@ const GithubButton = () => (
                 <FaGithub />
                 <Text px="4px">
                     <NextLink href={GITHUB_REPO_URL} passHref>
-                        <LinkOverlay>
+                        <LinkOverlay isExternal>
                             GitHub
                         </LinkOverlay>
                     </NextLink>
