@@ -40,9 +40,8 @@ const Mapbox = () => {
     // const [lat, setLat] = useState(-38.887);
     const [zoom, setZoom] = useState(12.5);
     const [Map, setMap] = useState();
-    // const data = 'https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson';
-    const data = '/cities_top50_simplified.geojson';
-    // console.log(data)                // Returning 404
+    const data = 'https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson';
+
     const drawerButtonRef = useRef();
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [topicName, setTopicName] = useState('Economy');

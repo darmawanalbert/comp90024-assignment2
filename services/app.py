@@ -11,12 +11,12 @@ import os
 import json
 
 import argparse
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from flask_swagger_ui import get_swaggerui_blueprint
 from routes import request_api
 
 APP = Flask(__name__)
-# CORS(app, resources={r"/*": {"origins": "*"}})
+CORS = CORS(APP, resources={r"/*": {"origins": "*"}})
 
 ### swagger specific ###
 SWAGGER_URL = '/docs'
@@ -77,9 +77,22 @@ def handle_500_error(_error):
 
 #     return jsonify({ 'number' : len(response_json['docs']), 'data': response_json })
 
+@APP.route("/cities", methods=["GET"])
+def cities():
+    path = "cities_top50_simplified.geojson"
+    with open(path) as f:
+        data = json.load(f)
+
+        return jsonify(data)
+
+@APP.route("/hello")
+@cross_origin()
+def hello():
+    person = {'name': 'Alice', 'birth-year': 1986}
+    return jsonify(person)
+    
 if __name__ == "__main__":
     # app.run(host="127.0.0.1", port=18080, debug=True)
-
     PARSER = argparse.ArgumentParser(
         description="Group 1 COMP90024")
 
@@ -91,7 +104,7 @@ if __name__ == "__main__":
 
     if ARGS.debug:
         print("Running in debug mode")
-        CORS = CORS(APP)
+        # CORS = CORS(APP, resources={r"/*": {"origins": "*"}})
         APP.run(host=HOST, port=PORT, debug=True)
     else:
         APP.run(host=HOST, port=PORT, debug=False)
