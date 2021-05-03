@@ -16,6 +16,7 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from routes import request_api
 
 APP = Flask(__name__)
+# CORS(app, resources={r"/*": {"origins": "*"}})
 
 ### swagger specific ###
 SWAGGER_URL = '/docs'
@@ -85,8 +86,8 @@ if __name__ == "__main__":
     PARSER.add_argument('--debug', action='store_true', help="Use flask debug/dev mode with file change reloading")
     ARGS = PARSER.parse_args()
 
-    PORT = int(os.environ.get('PORT', 18080))
-    HOST = "127.0.0.1"
+    PORT = int(os.environ.get('PORT', 8080))
+    HOST = "0.0.0.0"
 
     if ARGS.debug:
         print("Running in debug mode")

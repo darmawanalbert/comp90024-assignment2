@@ -5,6 +5,5 @@
 # Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
 # Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
-FROM nginx
-RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+export INSTANCE1=45.113.233.151
+export APP_NAME=comp90024
