@@ -42,7 +42,6 @@ sudo docker create\
   -p 4369:4369\
   -p 9100:9100\
   -v /opt/couchdb/master/data:/opt/couchdb/data\
-  -v /tmp/my.cookie:/opt/couchdb/.erlang.cookie\
   --env NODENAME=couchdb@${masternode}\
   --env COUCHDB_USER=${user}\
   --env COUCHDB_PASSWORD=${pass}\
@@ -111,9 +110,12 @@ sleep 15
 # setup the couchdb cluster
 echo "== Enable cluster setup =="
 for (( i=0; i<${size}; i++ )); do
-    curl -X PUT "http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_node/_local/_config/admins/${user}" -d "\"${pass}\""
+    curl -X PUT http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_node/_local/_config/admins/${user} -d "\"${pass}\""
     sleep 3
-    curl -X PUT "http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_node/_local/_config/chttpd/bind_address" -d '"0.0.0.0"'
+    curl -X PUT http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_node/_local/_config/chttpd/bind_address -d '"0.0.0.0"'
+    sleep 2
+    curl -X POST -H "Content-Type: application/json" http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_cluster_setup \
+        -d "{\"action\": \"enable_cluster\", \"bind_address\":\"0.0.0.0\", \"username\": \"${user}\", \"password\":\"${pass}\", \"node_count\":\"${size}\"}"
     sleep 2
 done
 
@@ -121,8 +123,9 @@ echo "== Add nodes to cluster =="
 for (( i=0; i<${size}; i++ )); do
     if [ "${nodes[${i}]}" != "${masternode}" ]; then
         curl -X POST -H 'Content-Type: application/json' http://${user}:${pass}@${masternode}:${masterport}/_cluster_setup \
-            -d "{\"action\": \"enable_cluster\", \"bind_address\":\"0.0.0.0\", \"username\": \"${user}\", \"password\":\"${pass}\", \"port\": ${ports[${i}]}, \"node_count\": \"${size}\", \
-            \"remote_node\": \"${nodes[${i}]}\", \"remote_current_user\": \"${user}\", \"remote_current_password\": \"${pass}\"}"
+            -d "{\"action\": \"enable_cluster\", \"bind_address\":\"0.0.0.0\", \"username\": \"${user}\", \"password\":\"${pass}\", \
+            \"port\": ${ports[${i}]}, \"node_count\": \"${size}\", \"remote_node\": \"${nodes[${i}]}\", \"remote_current_user\": \"${user}\", \
+            \"remote_current_password\": \"${pass}\"}"
         curl -X POST -H 'Content-Type: application/json' http://${user}:${pass}@${masternode}:${masterport}/_cluster_setup \
             -d "{\"action\": \"add_node\", \"host\":\"${nodes[${i}]}\", \"port\": ${ports[${i}]}, \"username\": \"${user}\", \"password\":\"${pass}\"}"
     fi
@@ -153,6 +156,13 @@ curl -XPOST "http://${user}:${pass}@${masternode}:${masterport}/_cluster_setup"\
     --header "Content-Type: application/json" --data "{\"action\": \"finish_cluster\"}"
 
 sleep 5
+
+# check whether cluster configuration is finished
+for (( i=0; i<${size}; i++ )); do  curl -X GET "http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_membership"; done
+
+# add harvest database and check whether it is created in other nodes as well
+curl -XPUT "http://${user}:${pass}@${masternode}:${masterport}/comp90024-team1-twitter-harvest-data"
+for (( i=0; i<${size}; i++ )); do  curl -X GET "http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_all_dbs"; done
 
 # =================================================================================================
 
