@@ -7,13 +7,16 @@ import pandas as pd
 from database.db_utils import DB_Utils
 from urllib3.exceptions import ProtocolError
 import os
+from shapely.geometry import Point, MultiPolygon
+from shapely.geometry.polygon import Polygon
+
 
 LOCATION = [144.5552,-38.1207,145.5494,-37.5803]
 VIC = [139.19,-38.72,149.7,-34.14]
 AUS = [113.62,-44.1,153.14,-10.75]
 
-#DB_NAME = 'twitter_db_test'
-DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "twitter_db_test" 
+GEOJSON_ADDRESS='../frontend/components/cities_top50_simplified.geojson'
+DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "comp90024-team1-twitter-harvest-data" 
 API_TOKENS = os.environ.get('API_TOKENS') if os.environ.get('API_TOKENS') != None else "twitter-api-tokens.csv" 
 
 creds_file = pd.read_csv(API_TOKENS,encoding='utf-8',sep=';')
@@ -36,6 +39,49 @@ api = tweepy.API(auth, wait_on_rate_limit=True)
 db_conn =DB_Utils()
 db_conn.db_connect(DB_NAME)
 
+#Load GeoJSON locations
+current_path = os.path.dirname(__file__)
+new_path = os.path.relpath(GEOJSON_ADDRESS,current_path)
+
+#A function to load the GeoJson file of cities
+def load_geojson(file_path):
+    location_details = []
+    with open(file_path,'r') as f:
+        geo_location = json.load(f)
+    
+    for i in range(len(geo_location['features'])):
+        location_dict = {}
+        location_dict['location_id'] = geo_location['features'][i]['properties']['UCL_CODE_2016']
+        location_dict['location_name'] = geo_location['features'][i]['properties']['UCL_NAME_2016']
+        location_dict['type'] = geo_location['features'][i]['geometry']['type']
+        location_dict['coordinates_polygon'] = geo_location['features'][i]['geometry']['coordinates']
+
+        location_details.append(location_dict)
+
+    return location_details
+
+list_location = load_geojson(new_path)
+
+#A function to check if a tweet is within the listed 50 cities
+def search_location(tweet_location, location_grid):
+    points = Polygon(tweet_location)
+    
+    location_found = False
+
+    for location in location_grid:
+        if location['type'] == 'Polygon':
+            container_box = Polygon(location['coordinates_polygon'][0])
+            if container_box.within(points):
+                location_found = True
+                return location_found
+        elif location['type'] == 'MultiPolygon':
+            for polygon in location['coordinates_polygon']:
+                container_box = Polygon(polygon[0])
+                if container_box.within(points):
+                    location_found = True
+                    return location_found
+    return location_found
+
 class CustomStreamListener(tweepy.StreamListener):
     def on_status(self,status):
         print(status.text)
@@ -43,7 +89,11 @@ class CustomStreamListener(tweepy.StreamListener):
     def on_data(self, data):
         try:      
             tweet_data = json.loads(data)
-            db_conn.save(DB_NAME,tweet_data)  
+            loc = tweet_data["place"]['bounding_box']['coordinates'][0]
+            gridsearch = search_location(loc,list_location)
+            if gridsearch == True:
+                #print(tweet_data['place']['full_name'])
+                db_conn.save(DB_NAME,tweet_data)  
         except BaseException as e:
             print("Error on data: %s" % str(e))
        
@@ -59,7 +109,7 @@ stream = tweepy.Stream(auth=api.auth, listener=stream_listener)
 
 while True:
     try:
-        stream.filter(locations = AUS,languages=['en'])
+        stream.filter(locations =AUS,languages=['en'])
     
     except ConnectionRefusedError:
         print("Error: stream connection failed")
