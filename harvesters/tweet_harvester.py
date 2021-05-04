@@ -16,7 +16,7 @@ VIC = [139.19,-38.72,149.7,-34.14]
 AUS = [113.62,-44.1,153.14,-10.75]
 
 GEOJSON_ADDRESS='../frontend/components/cities_top50_simplified.geojson'
-DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "comp90024-team1-twitter-harvest-data" 
+DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "comp90024_tweet_harvest" 
 API_TOKENS = os.environ.get('API_TOKENS') if os.environ.get('API_TOKENS') != None else "twitter-api-tokens.csv" 
 
 creds_file = pd.read_csv(API_TOKENS,encoding='utf-8',sep=';')
@@ -92,6 +92,10 @@ class CustomStreamListener(tweepy.StreamListener):
             loc = tweet_data["place"]['bounding_box']['coordinates'][0]
             gridsearch = search_location(loc,list_location)
             if gridsearch == True:
+                #tweet_id = tweet_data['id_str']
+                tweet_data['_id'] = tweet_data.pop('id_str')
+                
+                print(tweet_data)
                 #print(tweet_data['place']['full_name'])
                 db_conn.save(DB_NAME,tweet_data)  
         except BaseException as e:
