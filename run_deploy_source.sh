@@ -14,9 +14,11 @@
 
 # build new images
 docker-compose build
-
-# push new image to docker hub
 docker-compose push
+
+# build new images
+docker-compose -f harvesters/docker-compose.yml build
+docker-compose -f harvesters/docker-compose.yml push
 
 # set to execution file
 chmod +x constants.sh
@@ -28,5 +30,13 @@ ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance1 ubuntu@$INSTANCE1 
 scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance1 docker-compose.yml ubuntu@$INSTANCE1:docker-compose.yml
 
 # deploy in remote machine
-ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance1 ubuntu@$INSTANCE1 sudo docker stack rm $APP_NAME
+# ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance1 ubuntu@$INSTANCE1 sudo docker stack rm $APP_NAME
 ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance1 ubuntu@$INSTANCE1 sudo docker stack deploy $APP_NAME -c docker-compose.yml
+
+# copy harvester/docker-compose.yml
+chmod 400 keypairs/keypair-instance4
+ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo rm -r harvesters/
+scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 -r harvesters/ ubuntu@$INSTANCE4:harvesters/
+ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo docker-compose -f harvesters/docker-compose.yml pull
+# ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo docker-compose -f harvesters/docker-compose.yml push
+ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo docker-compose -f harvesters/docker-compose.yml up --force-recreate --build -d

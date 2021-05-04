@@ -1,0 +1,15 @@
+# This is a comment.
+# Each line is a file pattern followed by one or more owners.
+
+# Owners for specific domain
+/.github/ @darmawanalbert
+/.vscode/ @darmawanalbert
+/architectures/ @wildananugra
+/classifier/ @clawrencia
+/database/ @cakraocha
+/frontend/ @darmawanalbert
+/harvesters/ @clawrencia
+/keypairs/ @wildananugra
+/nginx/ @wildananugra
+/services/ @nuvianggaresti
+/templates/ @wildananugra
