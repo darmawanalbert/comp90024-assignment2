@@ -13,25 +13,25 @@ import json
 import argparse
 from flask_cors import CORS, cross_origin
 from flask_swagger_ui import get_swaggerui_blueprint
-from routes import request_api
+# from routes import request_api
 
 APP = Flask(__name__)
 CORS = CORS(APP, resources={r"/*": {"origins": "*"}})
 
-### swagger specific ###
-SWAGGER_URL = '/docs'
-API_URL = '/static/swagger.yml'
-SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
-    SWAGGER_URL,
-    API_URL,
-    config={
-        'app_name': "Group 1 COMP90024"
-    }
-)
-APP.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
-### end swagger specific ###
+# ### swagger specific ###
+# SWAGGER_URL = '/docs'
+# API_URL = '/static/swagger.yml'
+# SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
+#     SWAGGER_URL,
+#     API_URL,
+#     config={
+#         'app_name': "Group 1 COMP90024"
+#     }
+# )
+# APP.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
+# ### end swagger specific ###
 
-APP.register_blueprint(request_api.get_blueprint())
+# APP.register_blueprint(request_api.get_blueprint())
 
 DB_HOST = os.environ.get('DBHOST') if os.environ.get('DBHOST') != None else "http://admin:admin@127.0.0.1:5984/"
 DB_NAME = os.environ.get('DBNAME') if os.environ.get('DBNAME') != None else "testdb"

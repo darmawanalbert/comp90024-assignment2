@@ -9,7 +9,8 @@ Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
 import React from 'react';
 import Head from 'next/head';
-import api from '../../services/axiosConfig'; // Use axios configuration as specified in services/axiosConfig.js
+// import api from '../../services/axiosConfig'; // Use axios configuration as specified in services/axiosConfig.js
+import api from '../axiosConfig'; // Use axios configuration as specified in axiosConfig.js
 
 export default function Home() {
     // Get geojson for the map
