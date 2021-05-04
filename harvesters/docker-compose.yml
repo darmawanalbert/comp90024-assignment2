@@ -4,8 +4,8 @@ services:
     build:
         context: .
         dockerfile: ./Dockerfile
-    image: harvester
+    image: wildananugrah/twitter_collect
     environment:
-      DB_NAME: twitter_db_test
+      DB_NAME: comp90024-team1-twitter-harvest-data
       ADDRESS: http://admin:admin@45.113.234.156:15984/
       API_TOKENS: /app/twitter-api-tokens.csv

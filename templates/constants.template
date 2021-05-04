@@ -6,4 +6,7 @@
 # Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
 export INSTANCE1=${INSTANCE1}
+export INSTANCE2=${INSTANCE2}
+export INSTANCE3=${INSTANCE3}
+export INSTANCE4=${INSTANCE4}
 export APP_NAME=comp90024
