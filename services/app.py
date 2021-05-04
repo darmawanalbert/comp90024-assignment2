@@ -59,6 +59,67 @@ def handle_500_error(_error):
     """Return a http 500 error to client"""
     return make_response(jsonify({'error': 'Server error'}), 500)
 
+@APP.route("/cities", methods=["GET"])
+@cross_origin()
+def cities():
+    path = "./data/cities_top50_simplified.geojson"
+    with open(path) as f:
+        data = json.load(f)
+
+    return jsonify(data)
+
+@APP.route('/charts/all', methods=['GET'])
+@cross_origin()
+def analysis_all():
+    path = "./data/chart1.json"
+
+    with open(path) as f:
+        data = json.load(f)
+
+    return jsonify(data)
+
+@APP.route('/charts', methods=['GET'])
+@cross_origin()
+def analysis_id():
+    path = "./data/chart1.json"
+
+    if 'id' in request.args:
+        _id = request.args['id']
+    else:
+        return "Error: No id field provided. Please specify an id."
+
+    results = []
+    with open(path) as f:
+        charts = json.load(f)
+        for chart in charts:
+            if chart['id'] == _id:
+                results.append(chart)
+
+    return jsonify(results)
+
+@APP.route("/")
+@cross_origin()
+def home():
+    return "This is the server home"
+    
+if __name__ == "__main__":
+    # app.run(host="127.0.0.1", port=18080, debug=True)
+    PARSER = argparse.ArgumentParser(
+        description="Group 1 COMP90024")
+
+    PARSER.add_argument('--debug', action='store_true', help="Use flask debug/dev mode with file change reloading")
+    ARGS = PARSER.parse_args()
+
+    PORT = int(os.environ.get('PORT', 8080))
+    HOST = "0.0.0.0"
+
+    if ARGS.debug:
+        print("Running in debug mode")
+        APP.run(host=HOST, port=PORT, debug=True)
+    else:
+        APP.run(host=HOST, port=PORT, debug=False)
+
+# Wildan's for reference
 # @app.route("/",methods=["GET"])
 # def get():
 #     limit = 20
@@ -76,35 +137,3 @@ def handle_500_error(_error):
 #     response_json = json.loads(response.text)
 
 #     return jsonify({ 'number' : len(response_json['docs']), 'data': response_json })
-
-@APP.route("/cities", methods=["GET"])
-def cities():
-    path = "cities_top50_simplified.geojson"
-    with open(path) as f:
-        data = json.load(f)
-
-        return jsonify(data)
-
-@APP.route("/hello")
-@cross_origin()
-def hello():
-    person = {'name': 'Alice', 'birth-year': 1986}
-    return jsonify(person)
-    
-if __name__ == "__main__":
-    # app.run(host="127.0.0.1", port=18080, debug=True)
-    PARSER = argparse.ArgumentParser(
-        description="Group 1 COMP90024")
-
-    PARSER.add_argument('--debug', action='store_true', help="Use flask debug/dev mode with file change reloading")
-    ARGS = PARSER.parse_args()
-
-    PORT = int(os.environ.get('PORT', 8080))
-    HOST = "0.0.0.0"
-
-    if ARGS.debug:
-        print("Running in debug mode")
-        # CORS = CORS(APP, resources={r"/*": {"origins": "*"}})
-        APP.run(host=HOST, port=PORT, debug=True)
-    else:
-        APP.run(host=HOST, port=PORT, debug=False)
