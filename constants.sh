@@ -6,4 +6,7 @@
 # Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
 export INSTANCE1=45.113.233.151
+export INSTANCE2=45.113.233.2
+export INSTANCE3=45.113.234.166
+export INSTANCE4=45.113.234.156
 export APP_NAME=comp90024
