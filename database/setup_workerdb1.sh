@@ -35,7 +35,6 @@ sudo docker create\
   -p 4369:4369\
   -p 9100:9100\
   -v /opt/couchdb/worker${workerindex}/data:/opt/couchdb/data\
-  -v /tmp/my.cookie:/opt/couchdb/.erlang.cookie\
   --env NODENAME=couchdb@${workernode}\
   --env COUCHDB_USER=${user}\
   --env COUCHDB_PASSWORD=${pass}\
