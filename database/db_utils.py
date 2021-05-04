@@ -6,9 +6,10 @@
 # Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
 import couchdb
+import os
 
 #ADDRESS='http://admin:admin@115.146.95.84:15984/'
-ADDRESS = os.environ.get('ADDRESS') if os.environ.get('ADDRESS') != None else "http://admin:admin@localhost:15984/"
+ADDRESS = os.environ.get('ADDRESS') if os.environ.get('ADDRESS') != None else "http://admin:admin@45.113.234.156:15984/"
 
 # A class to create a database instance
 # The instance will automatically connect to the CouchDB hosted in MRC
