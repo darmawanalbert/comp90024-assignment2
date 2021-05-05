@@ -16,6 +16,7 @@ from database.db_utils import DB_Utils
 import os
 import time
 
+
 #Defining constants
 AUS = [113.62,-44.1,153.14,-10.75]
 DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "comp90024_tweet_harvest" 
@@ -41,8 +42,10 @@ api = tweepy.API(auth, wait_on_rate_limit=True)
 db_conn =DB_Utils()
 db_conn.db_connect(DB_NAME)
 
+
 #Location Object
 location_geojson = LocationUtils()
+
 
 class CustomStreamListener(tweepy.StreamListener):
     def on_status(self,status):
@@ -52,6 +55,7 @@ class CustomStreamListener(tweepy.StreamListener):
         try:      
             tweet_data = json.loads(data)
             loc = tweet_data["place"]['bounding_box']['coordinates'][0]
+
             gridsearch = location_geojson.search_grid(loc)
             if gridsearch == True:
                 #tweet_id = tweet_data['id_str']
