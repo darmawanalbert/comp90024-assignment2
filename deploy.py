@@ -12,6 +12,7 @@ import subprocess as sp
 from datetime import datetime
 import glob
 from pathlib import Path
+import json
 
 SERVER_NAME_LIST = [
     {'name': 'instance1','flavor': 'uom.mse.1c4g','keypair': 'keypair-instance1'},
@@ -35,6 +36,7 @@ LOCAL_NGINX_CONF = f"{LOCAL_NGINX_FOLDER}default.conf"
 LOCAL_NGINX_DOCKER_COMPOSE = f"nginx.docker-compose.yml"
 LOCAL_NGINX_DOCKER_FILE = f"nginx.Dockerfile"
 LOCAL_CONSTANTS = f"constants.sh"
+LOCAL_CONFIG_JSON = f"config.json"
 
 def create_connection(auth_url, project_name, username, password, region_name,
                       user_domain, project_domain, app_name, app_version):
@@ -241,11 +243,14 @@ def create_nginx_conf(server_list):
     fout.write(template)
     fout.close()
 
-def create_constants_file(instance1):
+def create_constants_file(server_list):
 
     fin = open("templates/constants.template", "rt")
     template = fin.read()
-    template = template.replace('${INSTANCE1}', instance1)
+    template = template.replace('${INSTANCE1}', server_list['instance1']['addr'])
+    template = template.replace('${INSTANCE2}', server_list['instance2']['addr'])
+    template = template.replace('${INSTANCE3}', server_list['instance3']['addr'])
+    template = template.replace('${INSTANCE4}', server_list['instance4']['addr'])
 
     fin.close()
 
@@ -339,6 +344,11 @@ def delete_local_keypairs():
     open(f'{os.path.expanduser("~")}/.ssh/known_hosts', 'w').close()
     print("Deleting local keypairs done.")
 
+def create_config_file(server_list):
+    fout = open(LOCAL_CONFIG_JSON, "wt")
+    fout.write(json.dumps(server_list))
+    fout.close()    
+
 def deploy_all():
     try:
         conn = create_connection(os.getenv('OS_AUTH_URL'),os.getenv('OS_PROJECT_NAME'), os.getenv('OS_USERNAME'),os.getenv('OS_PASSWORD_INPUT'),os.getenv('OS_REGION_NAME'),os.getenv('OS_USER_DOMAIN_NAME'),os.getenv('OS_PROJECT_DOMAIN_ID'),os.getenv('OS_PROJECT_NAME'),os.getenv('OS_IDENTITY_API_VERSION'))
@@ -380,10 +390,14 @@ def deploy_all():
 
         # create nginx/default.conf
         create_nginx_conf(server_list)
-        create_constants_file(instance1['addr'])
+        create_constants_file(server_list)
 
         # setup nginx
         setup_nginx(instance1)
+
+        # create config file
+        create_config_file(server_list)
+
     except Exception as err:
         print(f"ERROR: {err}")
 
@@ -391,11 +405,20 @@ def update_app():
     try:
         conn = create_connection(os.getenv('OS_AUTH_URL'),os.getenv('OS_PROJECT_NAME'), os.getenv('OS_USERNAME'),os.getenv('OS_PASSWORD_INPUT'),os.getenv('OS_REGION_NAME'),os.getenv('OS_USER_DOMAIN_NAME'),os.getenv('OS_PROJECT_DOMAIN_ID'),os.getenv('OS_PROJECT_NAME'),os.getenv('OS_IDENTITY_API_VERSION'))
         instance1_addr = None
+        instance4_addr = None
+        server_list = {}
         for server in conn.compute.servers():
             if(server.name == 'instance1'):
                 instance1_addr = server.addresses[NETWORK_NAME][0]['addr']
+            elif(server.name == 'instance4'):
+                instance4_addr = server.addresses[NETWORK_NAME][0]['addr']
+            server_list[server.name] = { 'addr' : server.addresses[NETWORK_NAME][0]['addr'], 'keypair' : f'{FOLDER_NAME}keypair-{server.name}' }
+        
+        create_config_file(server_list)
+        create_constants_file(server_list)
         
         print(f"Instance 1 ip address: {instance1_addr}")
+        print(f"Instance 4 ip address: {instance4_addr}")
         
         command_bash = f"docker-compose build "
         result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
@@ -409,6 +432,18 @@ def update_app():
         output = output.decode("utf-8").split('\n')
         print(output)
 
+        # command_bash = f"docker-compose -f harvesters/docker-compose.yml build "
+        # result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
+        # output, error = result.communicate()
+        # output = output.decode("utf-8").split('\n')
+        # print(output)
+
+        # command_bash = f"docker-compose -f harvesters/docker-compose.yml push "
+        # result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
+        # output, error = result.communicate()
+        # output = output.decode("utf-8").split('\n')
+        # print(output)
+
         command_bash = f"ssh -i keypairs/keypair-instance1 ubuntu@{instance1_addr} sudo rm docker-compose.yml "
         result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
         output, error = result.communicate()
@@ -421,16 +456,37 @@ def update_app():
         output = output.decode("utf-8").split('\n')
         print(output)
 
-        command_bash = f"ssh -i keypairs/keypair-instance1 ubuntu@{instance1_addr} sudo docker stack rm comp90024 "
+        command_bash = f"ssh -i keypairs/keypair-instance1 ubuntu@{instance1_addr} sudo docker stack deploy comp90024 -c docker-compose.yml "
         result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
         output, error = result.communicate()
         output = output.decode("utf-8").split('\n')
         print(output)
 
-        print("Sleep 10s")
-        time.sleep(10)
+        command_bash = f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo rm -r harvesters/ "
+        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
+        output, error = result.communicate()
+        output = output.decode("utf-8").split('\n')
+        print(output)
 
-        command_bash = f"ssh -i keypairs/keypair-instance1 ubuntu@{instance1_addr} sudo docker stack deploy comp90024 -c docker-compose.yml "
+        command_bash = f"scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 -r harvesters/ ubuntu@{instance4_addr}:harvesters/ "
+        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
+        output, error = result.communicate()
+        output = output.decode("utf-8").split('\n')
+        print(output)
+
+        command_bash = f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo docker-compose -f harvesters/docker-compose.yml build "
+        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
+        output, error = result.communicate()
+        output = output.decode("utf-8").split('\n')
+        print(output)
+
+        command_bash = f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo docker-compose -f harvesters/docker-compose.yml pull "
+        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
+        output, error = result.communicate()
+        output = output.decode("utf-8").split('\n')
+        print(output)
+
+        command_bash = f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo docker-compose -f harvesters/docker-compose.yml up --force-recreate --build -d"
         result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
         output, error = result.communicate()
         output = output.decode("utf-8").split('\n')
