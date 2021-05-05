@@ -13,7 +13,7 @@ module.exports = function (grunt) {
         "couch-compile": {
           dbs: {
             files: {
-              "/tmp/comp90024_tweet_harvest.json": "couchdb/comp90024_tweet_harvest"
+              "/tmp/comp90024_tweet_harvest.json": "couchdb/comp90024_tweet_harvest/topic_modelling"
             }
           }
         },
