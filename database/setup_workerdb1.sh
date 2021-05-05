@@ -12,10 +12,10 @@ export workerindex=1
 export user='admin'
 export pass='admin'
 export VERSION='latest'
-export cookie='a192aeb9904e6590849337933b000c99'
+export cookie='0c16e9f0bd3fc12edd83516529995817'
 
 # pull from dockerhub ibmcom
-sudo docker pull ibmcom/couchdb3:${VERSION}
+sudo docker pull couchdb:${VERSION}
 sudo docker network create --driver bridge couch
 
 # create docker container
@@ -48,11 +48,12 @@ sudo docker start workercouchdb${workerindex}
 
 sleep 10
 
-sudo docker exec workercouchdb${workerindex} bash -c "echo \"-setcookie \"${cookie}\"\" >> /opt/couchdb/etc/vm.args"
+sudo docker cp default.ini workercouchdb${workerindex}:/opt/couchdb/etc/
+sudo docker cp local.ini workercouchdb${workerindex}:/opt/couchdb/etc/
+sudo docker exec workercouchdb${workerindex} bash -c "sed -i '/-name couchdb@couchdb@${workernode}/d' /opt/couchdb/etc/vm.args"
 sudo docker exec workercouchdb${workerindex} bash -c "echo \"-name \"couchdb@${workernode}\"\" >> /opt/couchdb/etc/vm.args"
-sudo docker exec workercouchdb${workerindex} bash -c "echo \"-kernel \"inet_dist_listen_min\" \"9100\"\" >> /opt/couchdb/etc/vm.args"
-sudo docker exec workercouchdb${workerindex} bash -c "echo \"-kernel \"inet_dist_listen_max\" \"9100\"\" >> /opt/couchdb/etc/vm.args"
+sudo docker exec workercouchdb${workerindex} bash -c "echo \"-setcookie \"${cookie}\"\" >> /opt/couchdb/etc/vm.args"
 
 sudo docker restart workercouchdb${workerindex}
 
-sleep 5
+sleep 3
