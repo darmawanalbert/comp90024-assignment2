@@ -6,6 +6,6 @@ services:
         dockerfile: ./Dockerfile
     image: wildananugrah/twitter_collect
     environment:
-      DB_NAME: comp90024-team1-twitter-harvest-data
+      DB_NAME: comp90024_tweet_harvest
       ADDRESS: http://admin:admin@${INSTANCE4}:15984/
       API_TOKENS: /app/twitter-api-tokens.csv

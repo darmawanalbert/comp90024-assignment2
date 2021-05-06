@@ -17,8 +17,12 @@ This is a monorepo for COMP90024 - Assignment 2.
 ```
 $ ./run_deploy.sh # deploying source and instances
 $ ./run_deploy_source.sh # deploying source, push to docker hub, then deploy in remote machine
-$ ./run_deploy_instances.sh # deploying instances and existing source in docker hub
 ```
+
+## how to validate deployment
+1. replicatin database run 
+2. harvesters running run 
+3. frontend and service run in instance 1 and instance 2 parallely
 
 ## Directory Structure
 
