@@ -387,6 +387,7 @@ def update_app():
         
         create_config_file(server_list)
         create_constants_file(server_list)
+        create_harvester_docker_compose(server_list['instance4']['addr'])
 
         copyfile("config.json", "frontend/config.json")
         copyfile("config.json", "services/config.json")
