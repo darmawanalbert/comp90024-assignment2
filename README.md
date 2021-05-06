@@ -11,8 +11,7 @@ This is a monorepo for COMP90024 - Assignment 2.
 
 ## how to deploy
 - pre-requisite
-  - sudo apt install ansible
-  - sudo apt install python3-pip
+  - sudo apt install ansible python3-pip docker-ce docker-compose
   - pip3 install openstacksdk
 ```
 $ ./run_deploy.sh # deploying source and instances
