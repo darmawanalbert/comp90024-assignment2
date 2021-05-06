@@ -25,9 +25,9 @@ chmod +x constants.sh
 source constants.sh
 
 # setup database couchdb
-scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 database/constants.sh ubuntu@$INSTANCE3:constants.sh
-scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 database/default.ini ubuntu@$INSTANCE3:default.ini
-scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 database/local.ini ubuntu@$INSTANCE3:local.ini
+scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance3 database/constants.sh ubuntu@$INSTANCE3:constants.sh
+scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance3 database/default.ini ubuntu@$INSTANCE3:default.ini
+scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance3 database/local.ini ubuntu@$INSTANCE3:local.ini
 ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance3 ubuntu@$INSTANCE3 'bash -s' < ./database/setup_workerdb1.sh
 
 scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 database/constants.sh ubuntu@$INSTANCE4:constants.sh
