@@ -17,7 +17,7 @@ services:
             replicas: 2
         environment:
             DBNAME: testdb
-            DBHOST: http://admin:admin@45.113.233.237:15984/
+            DBHOST: http://admin:admin@45.113.235.136:15984/
         ports:
             - "8080:8080"
         networks:
@@ -42,7 +42,7 @@ services:
         command: python -u /app/app.py
         environment:
             DBNAME: testdb
-            DBHOST: "http://admin:admin@45.113.233.237:15984/"
+            DBHOST: "http://admin:admin@45.113.235.136:15984/"
             QUERY: jokowi
         labels:
             - "swarm.cronjob.enable=true"
