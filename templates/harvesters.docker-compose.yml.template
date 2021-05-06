@@ -1,9 +1,6 @@
 version: "3.7"  # optional since v1.27.0
 services:
   twitter_harvest:
-    build:
-        context: .
-        dockerfile: ./Dockerfile
     image: wildananugrah/twitter_collect
     environment:
       DB_NAME: comp90024_tweet_harvest

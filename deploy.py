@@ -174,11 +174,7 @@ def setup_docker(conn):
 
 def swarm_leave(server_instance1):
     try:
-        command_bash = f"ssh -oStrictHostKeyChecking=no -i {server_instance1['keypair']} {DEFAULT_USER}@{server_instance1['addr']} sudo docker swarm leave -f"
-        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-        output, error = result.communicate()
-        output = output.decode("utf-8").split('\n')
-        print(output)
+        execute_command(f"ssh -oStrictHostKeyChecking=no -i {server_instance1['keypair']} {DEFAULT_USER}@{server_instance1['addr']} sudo docker swarm leave -f")
         return True
     except Exception as err:
         print(f"ERROR {err}")
@@ -205,11 +201,7 @@ def setup_swarm_join(server_list, token_join_swarm):
     for server in server_list:
         print(server)
         try:
-            command_bash = f"ssh -i {server_list[server]['keypair']} {DEFAULT_USER}@{server_list[server]['addr']} sudo {token_join_swarm}"
-            result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-            output, error = result.communicate()
-            output = output.decode("utf-8")
-            print(output)
+            execute_command(f"ssh -i {server_list[server]['keypair']} {DEFAULT_USER}@{server_list[server]['addr']} sudo {token_join_swarm}")
         except Exception as err:
             print(f"ERROR {err}")
 
