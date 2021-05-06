@@ -9,3 +9,4 @@ services:
       DB_NAME: comp90024_tweet_harvest
       ADDRESS: http://admin:admin@${INSTANCE4}:15984/
       API_TOKENS: /app/twitter-api-tokens.csv
+      GEOJSON_ADDRESS: /app/cities_top50_simplified.geojson
