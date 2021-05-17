@@ -19,7 +19,7 @@ import time
 
 #Defining constants
 AUS = [113.62,-44.1,153.14,-10.75]
-DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "comp90024_tweet_harvest" 
+DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "test_new1" 
 API_TOKENS = os.environ.get('API_TOKENS') if os.environ.get('API_TOKENS') != None else "twitter-api-tokens.csv" 
 
 #Getting Credentials for Twitter API
@@ -57,11 +57,12 @@ class CustomStreamListener(tweepy.StreamListener):
             loc = tweet_data["place"]['bounding_box']['coordinates'][0]
 
             gridsearch = location_geojson.search_grid(loc)
-            if gridsearch == True:
+            if gridsearch[0] == True:
                 #tweet_id = tweet_data['id_str']
                 tweet_data['_id'] = tweet_data.pop('id_str')
-                
-                print(tweet_data)
+                tweet_data['place']['AURIN_id'] = gridsearch[1]
+                tweet_data['place']['AURIN_loc_name'] = gridsearch[2]
+               # print(tweet_data)
                 #print(tweet_data['place']['full_name'])
                 db_conn.save(DB_NAME,tweet_data)  
         except BaseException as e:
