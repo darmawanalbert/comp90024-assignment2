@@ -19,7 +19,7 @@ import time
 
 #Defining constants
 AUS = [113.62,-44.1,153.14,-10.75]
-DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "test_new1" 
+DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "comp90024_tweet_harvest" 
 API_TOKENS = os.environ.get('API_TOKENS') if os.environ.get('API_TOKENS') != None else "twitter-api-tokens.csv" 
 
 #Getting Credentials for Twitter API
