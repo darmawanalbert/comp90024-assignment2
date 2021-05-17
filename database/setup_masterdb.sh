@@ -12,6 +12,7 @@ export declare -a ports=(15984 25984)
 export masterport=`echo ${ports} | cut -f1 -d' '`
 export declare -a indexdb=(0 1)
 export declare -a dblist=(comp90024_tweet_harvest comp90024_tweet_search)
+export declare -a replist=(harvest_rep search_rep)
 export size=${#nodes[@]}
 export dbsize=${#dblist[@]}
 export user='admin'
@@ -85,7 +86,9 @@ for (( i=0; i<${size}; i++ )); do
     curl -X POST -H "Content-Type: application/json" http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_cluster_setup \
         -d "{\"action\": \"enable_cluster\", \"bind_address\":\"0.0.0.0\", \"username\": \"${user}\", \"password\":\"${pass}\", \
         \"node_count\":\"${size}\"}"
+    curl -X GET "http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_membership"
     sleep 2
+
 done
 
 echo "===== Add nodes to cluster ====="
@@ -117,7 +120,7 @@ sleep 5
 
 echo "===== perform checking on the couchdb setup ======"
 # check whether cluster configuration is finished
-for (( i=0; i<${size}; i++ )); do  curl -X GET "http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_membership"; done
+for (( i=0; i<${size}; i++ )); do curl -X GET "http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_membership"; done
 
 # add database in dblist and check whether it is created in other nodes as well
 for db in ${dblist[@]}
@@ -131,11 +134,12 @@ echo " "
 
 echo "===== setup replicator ====="
 for (( i=0; i<${size}; i++ )); do
+    declare workercurl=http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}
     if [ "${nodes[${i}]}" != "${masternode}" ]; then
-        for db in ${dblist[@]}; do
+        for (( i=0; i<${dbsize}; i++ )); do
             curl -X POST -H "Content-Type: application/json" http://${user}:${pass}@${masternode}:${masterport}/_replicator \
-                -d "{\"_id\": \"my_rep\", \"source\": \"http://${user}:${pass}@${masternode}:${masterport}/${db}\", \
-                \"target\": \"http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/${db}\", \"create_target\": true, \
+                -d "{\"_id\": \"${replist[${i}]}\", \"source\": \"http://${user}:${pass}@${masternode}:${masterport}/${dblist[${i}]}\", \
+                \"target\": \"${workercurl}/${dblist[${i}]}\", \"create_target\": true, \
                 \"continuous\": true}"
         done
     fi
