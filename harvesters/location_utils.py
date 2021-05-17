@@ -42,17 +42,23 @@ class LocationUtils():
             self.points = Point(tweet_location)
             
         self.location_found = False
+        self.location_id = None
+        self.location_name = None
 
         for location in self.location_grid:
             if location['type'] == 'Polygon':
                 self.container_box = Polygon(location['coordinates_polygon'][0])
                 if self.container_box.within(self.points):
                     self.location_found = True
-                    return self.location_found
+                    self.location_id = location['location_id']
+                    self.location_name = location['location_name']
+                    return self.location_found, self.location_id,self.location_name
             elif location['type'] == 'MultiPolygon':
                 for polygon in location['coordinates_polygon']:
                     self.container_box = Polygon(polygon[0])
                     if self.container_box.within(self.points):
                         self.location_found = True
-                        return self.location_found
-        return self.location_found
+                        self.location_id = location['location_id']
+                        self.location_name = location['location_name']
+                        return self.location_found, self.location_id,self.location_name
+        return self.location_found, self.location_id, self.location_name
