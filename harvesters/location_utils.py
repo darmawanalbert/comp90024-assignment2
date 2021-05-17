@@ -11,9 +11,10 @@ from shapely.geometry import Point, MultiPolygon
 from shapely.geometry.polygon import Polygon
 import sys
 import json
-sys.path.append('../')
+# sys.path.append('../')
 
-GEOJSON_ADDRESS='../frontend/components/cities_top50_simplified.geojson'
+# GEOJSON_ADDRESS='../frontend/components/cities_top50_simplified.geojson'
+GEOJSON_ADDRESS = os.environ.get('GEOJSON_ADDRESS') if os.environ.get('GEOJSON_ADDRESS') != None else "cities_top50_simplified.geojson" 
 current_path = os.path.dirname(__file__)
 new_path = os.path.relpath(GEOJSON_ADDRESS,current_path)
 
@@ -21,7 +22,7 @@ class LocationUtils():
     def __init__(self):
         try:
             self.location_grid = []
-            with open(new_path,'r') as f:
+            with open(GEOJSON_ADDRESS,'r') as f:
                 self.geo_location = json.load(f)
             for i in range(len(self.geo_location['features'])):
                 self.location_dict = {}
@@ -41,17 +42,23 @@ class LocationUtils():
             self.points = Point(tweet_location)
             
         self.location_found = False
+        self.location_id = None
+        self.location_name = None
 
         for location in self.location_grid:
             if location['type'] == 'Polygon':
                 self.container_box = Polygon(location['coordinates_polygon'][0])
                 if self.container_box.within(self.points):
                     self.location_found = True
-                    return self.location_found
+                    self.location_id = location['location_id']
+                    self.location_name = location['location_name']
+                    return self.location_found, self.location_id,self.location_name
             elif location['type'] == 'MultiPolygon':
                 for polygon in location['coordinates_polygon']:
                     self.container_box = Polygon(polygon[0])
                     if self.container_box.within(self.points):
                         self.location_found = True
-                        return self.location_found
-        return self.location_found
+                        self.location_id = location['location_id']
+                        self.location_name = location['location_name']
+                        return self.location_found, self.location_id,self.location_name
+        return self.location_found, self.location_id, self.location_name

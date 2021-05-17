@@ -57,11 +57,12 @@ class CustomStreamListener(tweepy.StreamListener):
             loc = tweet_data["place"]['bounding_box']['coordinates'][0]
 
             gridsearch = location_geojson.search_grid(loc)
-            if gridsearch == True:
+            if gridsearch[0] == True:
                 #tweet_id = tweet_data['id_str']
                 tweet_data['_id'] = tweet_data.pop('id_str')
-                
-                print(tweet_data)
+                tweet_data['place']['AURIN_id'] = gridsearch[1]
+                tweet_data['place']['AURIN_loc_name'] = gridsearch[2]
+               # print(tweet_data)
                 #print(tweet_data['place']['full_name'])
                 db_conn.save(DB_NAME,tweet_data)  
         except BaseException as e:
