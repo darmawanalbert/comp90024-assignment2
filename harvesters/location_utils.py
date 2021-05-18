@@ -45,10 +45,12 @@ class LocationUtils():
         self.location_id = None
         self.location_name = None
 
+        print(self.points)
         for location in self.location_grid:
             if location['type'] == 'Polygon':
                 self.container_box = Polygon(location['coordinates_polygon'][0])
-                if self.container_box.within(self.points):
+                if self.container_box.contains(self.points):
+                    print('yes')
                     self.location_found = True
                     self.location_id = location['location_id']
                     self.location_name = location['location_name']
@@ -57,6 +59,7 @@ class LocationUtils():
                 for polygon in location['coordinates_polygon']:
                     self.container_box = Polygon(polygon[0])
                     if self.container_box.within(self.points):
+                        print('yes')
                         self.location_found = True
                         self.location_id = location['location_id']
                         self.location_name = location['location_name']
