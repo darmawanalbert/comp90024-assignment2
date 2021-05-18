@@ -1,0 +1,4 @@
+{ "data":[
+    { "labels": ["albert", "wildan", "clar", "ocha", "nuvs"], "datasets": [{"label": "# of Votes","data": [10, 9, 8, 7, 6]}]},
+    { "labels": ["albert", "wildan", "clar", "ocha", "nuvs"], "datasets": [{"label": "# of Votes","data": [6, 7, 8, 9, 10]}]}
+]}
