@@ -8,8 +8,9 @@
 import couchdb
 import os
 
-#ADDRESS='http://admin:admin@115.146.95.84:15984/'
-ADDRESS = os.environ.get('ADDRESS') if os.environ.get('ADDRESS') != None else "http://admin:admin@localhost:15984/"
+#Instance 4 test
+#ADDRESS='http://admin:admin@45.113.235.136:15984/'
+ADDRESS = os.environ.get('ADDRESS') if os.environ.get('ADDRESS') != None else "http://admin:admin@45.113.235.136:15984"
 
 # A class to create a database instance
 # The instance will automatically connect to the CouchDB hosted in MRC
@@ -36,6 +37,7 @@ class DB_Utils():
             self.server.create(database)
             self.db = self.server[database]
         except Exception as e:
+            print('error here')
             print(e)
             exit(-1)
     
