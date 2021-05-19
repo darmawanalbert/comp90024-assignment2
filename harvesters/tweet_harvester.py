@@ -8,6 +8,7 @@
 import sys
 sys.path.append('../')
 
+import couchdb
 import tweepy
 import json 
 import pandas as pd
@@ -19,7 +20,14 @@ import time
 
 #Defining constants
 AUS = [113.62,-44.1,153.14,-10.75]
-DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "test_new1" 
+
+#Connect to DB
+DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "comp90024_tweet_harvest" 
+ADDRESS='http://admin:admin@45.113.235.136:15984'
+#ADDRESS = os.environ.get('ADDRESS') if os.environ.get('ADDRESS') != None else "http://admin:admin@45.113.235.136:15984/"
+server = couchdb.Server(ADDRESS)
+db_conn = server[DB_NAME]
+
 API_TOKENS = os.environ.get('API_TOKENS') if os.environ.get('API_TOKENS') != None else "twitter-api-tokens.csv" 
 
 #Getting Credentials for Twitter API
@@ -38,10 +46,6 @@ auth.set_access_token(consumer_access_token,consumer_token_secret)
 #API Object
 api = tweepy.API(auth, wait_on_rate_limit=True)
 
-#CouchDB Database Object 
-db_conn =DB_Utils()
-db_conn.db_connect(DB_NAME)
-
 
 #Location Object
 location_geojson = LocationUtils()
@@ -57,14 +61,13 @@ class CustomStreamListener(tweepy.StreamListener):
             loc = tweet_data["place"]['bounding_box']['coordinates'][0]
 
             gridsearch = location_geojson.search_grid(loc)
+        
             if gridsearch[0] == True:
                 #tweet_id = tweet_data['id_str']
                 tweet_data['_id'] = tweet_data.pop('id_str')
                 tweet_data['place']['AURIN_id'] = gridsearch[1]
                 tweet_data['place']['AURIN_loc_name'] = gridsearch[2]
-                print(tweet_data)
-                #print(tweet_data['place']['full_name'])
-                db_conn.save(DB_NAME,tweet_data)  
+                db_conn.save(tweet_data)  
         except BaseException as e:
             print("Error on data: %s" % str(e))
        
