@@ -12,12 +12,16 @@ import gensim
 from nltk.stem import WordNetLemmatizer
 from gensim.corpora import Dictionary
 from gensim.models.ldamodel import LdaModel
-from db_utils import DB_Utils
 
-##THIS WILL BE CHANGED TO API
+
+#Creating DB Connection
 DB_NAME = 'comp90024_lda_scoring'
-db_conn =DB_Utils()
-db_conn.db_connect(DB_NAME)
+ADDRESS='http://admin:admin@45.113.235.136:15984'
+#DB_NAME = 'test_new1'
+server = couchdb.Server(ADDRESS)
+db_conn = server[DB_NAME]
+
+
 db_views = "http://admin:admin@45.113.235.136:15984/comp90024_tweet_harvest/_design/topic_modelling/_view/by_date_and_place"
 obj = {"key": [[2021, 5, 9],'Melbourne']} #Key will be defined from services (date and location)
 
@@ -195,15 +199,15 @@ def main():
     # print('entertainment: ',entertaintment_score)
     # print('business: ',business_score)
 
-    data_record =dict( date =str(obj['key'][0]), location=str(obj['key'][1]),
-                        lda_result = lda_res[1], score_sports = str(sports_score),
-                        score_places = str(places_score), score_politics= str(politics_score),
-                        score_education = str(education_score), score_entertaintment=str(entertaintment_score),
-                        score_business=str(business_score))
-    #print(data_record)
-    dumy ={"test": "claw"}
-    json_object = json.dumps(data_record)
-    #print(json_object)
-    db_conn.save(DB_NAME,json.dumps(dumy))  
-    #print('Successful')
+    data_record =dict(date =str(obj['key'][0]), location=str(obj['key'][1]),
+                    lda_result = lda_res[1], score_sports = str(sports_score),
+                    score_places = str(places_score), score_politics= str(politics_score),
+                    score_education = str(education_score), score_entertaintment=str(entertaintment_score),
+                    score_business=str(business_score))
+
+    try:
+        db_conn.save(data_record)  
+        print('Successful')
+    except Exception as e:
+        print(e)
 main() 
