@@ -19,23 +19,68 @@ export default function Home() {
         console.log(res.data);
     }
 
-    // Get data for all available charts
-    async function getCharts() {
-        const res = await api.get('/charts/all');
+    async function getMedianIncome() {
+        const res = await api.get('/median_income', { params: { id: '101001' } });
 
         console.log(res.data);
     }
 
-    // Get data for a single chart
-    async function getChart() {
-        const res = await api.get('/charts', { params: { id: 'data2' } });
+    async function getMedianIncomes() {
+        const res = await api.get('/median_income/all')
+
+        console.log(res.data)
+    }
+
+    async function getAge() {
+        const res = await api.get('/age_25_34', { params: { id: '101001' } });
 
         console.log(res.data);
     }
 
-    getCities();
-    getCharts();
-    getChart();
+    async function getAges() {
+        const res = await api.get('/age_25_34/all')
+
+        console.log(res.data)
+    }
+
+    async function getUnemployment() {
+        const res = await api.get('/unemployment_rate', { params: { id: '101001' } });
+
+        console.log(res.data);
+    }
+
+    async function getUnemployments() {
+        const res = await api.get('/unemployment_rate/all')
+
+        console.log(res.data)
+    }
+
+
+
+    // getCities();
+    // getCharts();
+    // getChart();
+    // getMedianIncome();
+    // getMedianIncomes();
+    // getAge();
+    // getAges();
+    getUnemployment();
+    getUnemployments();
+
+    // APIs for later use
+    // // Get data for all available charts
+    // async function getCharts() {
+    //     const res = await api.get('/charts/all');
+
+    //     console.log(res.data);
+    // }
+
+    // // Get data for a single chart
+    // async function getChart() {
+    //     const res = await api.get('/charts', { params: { id: 'data2' } });
+
+    //     console.log(res.data);
+    // }
 
     return (
         <div>
