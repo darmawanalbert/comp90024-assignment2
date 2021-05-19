@@ -14,7 +14,7 @@ export pass='admin'
 export VERSION='latest'
 export cookie='0c16e9f0bd3fc12edd83516529995817'
 
-# pull from dockerhub ibmcom
+# pull from official couchdb docker
 sudo docker pull couchdb:${VERSION}
 sudo docker network create --driver bridge couch
 
@@ -29,9 +29,10 @@ fi
 
 sudo docker create\
   --name workercouchdb${workerindex}\
-  --net=couch\
+  --network-alias couchdb@${workernode}\
   --hostname couchdb@${workernode}\
   -p ${workerport}:5984\
+  -p 5986:5986\
   -p 4369:4369\
   -p 9100:9100\
   -v /opt/couchdb/worker${workerindex}/data:/opt/couchdb/data\
@@ -42,6 +43,8 @@ sudo docker create\
   --env ERL_FLAGS="-setcookie \"${cookie}\" -name \"couchdb@${workernode}\"\
   -kernel \"inet_dist_listen_min 9100\" -kernel \"inet_dist_listen_max 9100\""\
   couchdb:${VERSION}
+
+  # --net=couch\
 
 # start the container
 sudo docker start workercouchdb${workerindex}
