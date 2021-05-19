@@ -13,8 +13,9 @@ export masternode=`echo ${nodes} | cut -f1 -d' '`
 export declare -a ports=(15984 25984)
 export masterport=`echo ${ports} | cut -f1 -d' '`
 export declare -a indexdb=(0 1)
-export declare -a dblist=(comp90024_tweet_harvest comp90024_tweet_search)
-export declare -a replist=(harvest_rep search_rep)
+export declare -a dblist=(comp90024_tweet_harvest comp90024_tweet_search\
+                          comp90024_lda_scoring comp90024_aurin_statistics)
+export declare -a replist=(harvest_rep search_rep lda_scoring_rep aurin_stats_rep)
 export size=${#nodes[@]}
 export dbsize=${#dblist[@]}
 export user='admin'
@@ -41,9 +42,10 @@ fi
 
 sudo docker create\
   --name mastercouchdb\
-  --net=couch\
+  --network-alias couchdb@${masternode}\
   --hostname couchdb@${masternode}\
   -p ${masterport}:5984\
+  -p 5986:5986\
   -p 4369:4369\
   -p 9100:9100\
   -v /opt/couchdb/master/data:/opt/couchdb/data\
@@ -54,6 +56,8 @@ sudo docker create\
   --env ERL_FLAGS="-setcookie \"${cookie}\" -name \"couchdb@${masternode}\"\
   -kernel \"inet_dist_listen_min 9100\" -kernel \"inet_dist_listen_max 9100\""\
   couchdb:${VERSION}
+
+#   --net=couch\
 
 echo "===== done create ====="
 echo " "
@@ -98,7 +102,7 @@ for (( i=0; i<${size}; i++ )); do
     if [ "${nodes[${i}]}" != "${masternode}" ]; then
         curl -X POST -H 'Content-Type: application/json' http://${user}:${pass}@${masternode}:${masterport}/_cluster_setup \
             -d "{\"action\": \"enable_cluster\", \"bind_address\":\"0.0.0.0\", \"username\": \"${user}\", \"password\":\"${pass}\", \
-            \"port\": ${ports[${i}]}, \"node_count\": \"${size}\", \"remote_node\": \"${nodes[${i}]}\", \"remote_current_user\": \"${user}\", \
+            \"port\": ${ports[${i}]}, \"node_count\": \"${size}\", \"remote_node\": \"http://${nodes[${i}]}\", \"remote_current_user\": \"${user}\", \
             \"remote_current_password\": \"${pass}\"}"
         curl -X POST -H 'Content-Type: application/json' http://${user}:${pass}@${masternode}:${masterport}/_cluster_setup \
             -d "{\"action\": \"add_node\", \"host\":\"${nodes[${i}]}\", \"port\": ${ports[${i}]}, \"username\": \"${user}\", \
