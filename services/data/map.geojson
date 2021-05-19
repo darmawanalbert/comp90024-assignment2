@@ -1,0 +1,22 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [        
+                    [96.8168, -9.1422],
+                    [159.1092, -9.1422],
+                    [159.1092, -43.7405],
+                    [96.8168, -43.7405]
+                ]
+            ]
+        },
+        "properties": {
+            "name": "australia"
+        }
+        }
+  ]
+}
