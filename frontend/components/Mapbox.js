@@ -18,6 +18,8 @@ import mapboxgl from 'mapbox-gl/dist/mapbox-gl';
 import { MAPBOX_PUBLIC_KEY } from '../utils/config';
 import { addDataLayer, initialiseMap } from '../utils/mapboxUtil';
 
+import WordCloud from './WordCloud';
+
 import './Mapbox.module.css';
 
 mapboxgl.accessToken = MAPBOX_PUBLIC_KEY;
@@ -69,6 +71,44 @@ const Mapbox = () => {
         }
     }, [isComponentMounted, setMap, data, Map]);
 
+    const ldaResults = [
+        { text: 'day', value: 0.01589293 },
+        { text: 'photo', value: 0.00922306 },
+        { text: 'posted', value: 0.00845825 },
+        { text: 'australia', value: 0.00576136 },
+        { text: 'one', value: 0.00516197 },
+        { text: 'victoria', value: 0.00382048 },
+        { text: 'love', value: 0.00351002 },
+        { text: 'mother', value: 0.01062788 },
+        { text: 'happy', value: 0.00915481 },
+        { text: 'would', value: 0.00297083 },
+        { text: 'lisapresley', value: 0.00585826 },
+        { text: 'year', value: 0.00502370 },
+        { text: 'make', value: 0.00365274 },
+        { text: 'know', value: 0.00412439 },
+        { text: 'holy', value: 0.00328865 },
+        { text: 'mainsundayservice', value: 0.00310556 },
+        { text: 'see', value: 0.00309822 },
+        { text: 'god', value: 0.00299292 },
+        { text: 'like', value: 0.00850314 },
+        { text: 'melbourne', value: 0.00699135 },
+        { text: 'mum', value: 0.00557472 },
+        { text: 'today', value: 0.00500120 },
+        { text: 'naomirwolf', value: 0.00431268 },
+        { text: 'good', value: 0.00871694 },
+        { text: 'go', value: 0.00596997 },
+        { text: 'time', value: 0.00358518 },
+        { text: 'night', value: 0.00434714 },
+        { text: 'people', value: 0.00411526 },
+        { text: 'u', value: 0.00380271 },
+        { text: 'game', value: 0.00363156 },
+        { text: 'get', value: 0.00519592 },
+        { text: 'need', value: 0.00483581 },
+        { text: 'team', value: 0.00407634 },
+        { text: 'thank', value: 0.00403449 },
+        { text: 'back', value: 0.00351706 },
+    ];
+
     return (
         <Flex>
             <div className="map-container" ref={mapContainer} style={mapContainerStyle} />
@@ -89,7 +129,7 @@ const Mapbox = () => {
                     </Stat>
                 </StatGroup>
                 <br />
-                <Text fontSize="xl" fontWeight="semibold">Topics</Text>
+                <Text fontSize="xl" fontWeight="semibold">Topic Scores</Text>
                 <Table variant="simple">
                     <TableCaption>Last updated: April 2021</TableCaption>
                     <Thead>
@@ -123,6 +163,10 @@ const Mapbox = () => {
                         </Tr>
                     </Tfoot>
                 </Table>
+                <Text fontSize="xl" fontWeight="semibold">Topic Keywords</Text>
+                <Box marginBottom={4}>
+                    <WordCloud data={ldaResults} />
+                </Box>
             </Box>
         </Flex>
     );

@@ -7,8 +7,14 @@ Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
 Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
 */
 
-export { default as Navbar } from './Navbar/Navbar';
-export { default as Mapbox } from './Mapbox';
-export { default as StudentProfile } from './StudentProfile';
-export { default as TwitterCard } from './TwitterCard';
-export { default as WordCloud } from './WordCloud';
+import React from 'react';
+import ReactWordcloud from 'react-wordcloud';
+
+const options = {
+    fontFamily: 'Arial',
+    fontSizes: [12, 60],
+};
+
+const WordCloud = ({ data }) => (<ReactWordcloud words={data} options={options} />);
+
+export default WordCloud;
