@@ -9,6 +9,7 @@
 # Installing the necessary packages for Machine Learning Modelling
 import couchdb
 import requests
+import nltk
 import json
 import pandas as pd
 from nltk import word_tokenize
