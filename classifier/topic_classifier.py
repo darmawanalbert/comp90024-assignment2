@@ -29,10 +29,8 @@ nltk.download('wordnet')
 
 
 #Creating DB Connection
-#DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "comp90024_lda_scoring" 
-#ADDRESS = os.environ.get('ADDRESS') if os.environ.get('ADDRESS') != None else "http://admin:admin@45.113.235.136:15984/"
-DB_NAME = 'comp90024_lda_scoring' #Change this to OS Environ later
-ADDRESS='http://admin:admin@45.113.235.136:15984' #Change this to OS Environ later 
+DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "comp90024_lda_scoring" 
+ADDRESS = os.environ.get('ADDRESS') if os.environ.get('ADDRESS') != None else "http://admin:admin@45.113.235.136:15984/"
 server = couchdb.Server(ADDRESS)
 db_conn = server[DB_NAME]
 
