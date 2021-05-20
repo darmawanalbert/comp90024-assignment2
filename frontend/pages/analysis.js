@@ -12,7 +12,7 @@ import Head from 'next/head';
 import { Heading, Container, Center } from '@chakra-ui/react';
 import { Line } from 'react-chartjs-2';
 
-import { Navbar, TwitterCard } from '../components/index';
+import { Navbar } from '../components/index';
 import { useMapInfo } from '../utils/fetcher';
 
 export default function Analysis({ apiUrl }) {
@@ -57,13 +57,6 @@ export default function Analysis({ apiUrl }) {
                         <Heading>Analysis with AURIN</Heading>
                     </Center>
                     <Line data={data} options={options} />
-                    <TwitterCard
-                        displayName="Albert Darmawan"
-                        username="darmawan2502"
-                        tweet="Wow this is awesome!"
-                        time="10:50 PM"
-                        date="Apr 23, 2021"
-                    />
                 </Container>
             </main>
         </div>
