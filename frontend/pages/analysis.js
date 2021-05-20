@@ -13,8 +13,9 @@ import { Heading, Container, Center } from '@chakra-ui/react';
 import { Line } from 'react-chartjs-2';
 
 import { Navbar, TwitterCard } from '../components/index';
+import { useMapInfo } from '../utils/fetcher';
 
-export default function Analysis() {
+export default function Analysis({ apiUrl }) {
     const data = {
         labels: ['1', '2', '3', '4', '5', '6'],
         datasets: [
@@ -39,6 +40,10 @@ export default function Analysis() {
             ],
         },
     };
+
+    const { mapInfo, isMapInfoLoading, isMapInfoError } = useMapInfo(apiUrl);
+    alert(JSON.stringify(mapInfo));
+
     return (
         <div>
             <Head>
@@ -63,4 +68,13 @@ export default function Analysis() {
             </main>
         </div>
     );
+}
+
+export async function getStaticProps() {
+    const apiUrl = process.env.API_URL;
+    return {
+        props: {
+            apiUrl,
+        },
+    };
 }

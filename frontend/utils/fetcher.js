@@ -8,10 +8,9 @@ Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu
 */
 
 import useSWR from 'swr';
-import { API_URL } from './config';
 
-const useMapInfo = () => {
-    const { data, error } = useSWR(`${API_URL}/examples`);
+const useMapInfo = (apiUrl) => {
+    const { data, error } = useSWR(`${apiUrl}/cities`);
     return {
         mapInfo: data,
         isLoading: !error && !data,
