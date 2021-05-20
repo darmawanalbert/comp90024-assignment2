@@ -3,7 +3,7 @@
 # Clarisca Lawrencia (1152594) - clawrencia@student.unimelb.edu.au
 # I Gede Wibawa Cakramurti (1047538) - icakramurti@student.unimelb.edu.au
 # Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
-# Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.auS
+# Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
 import sys
 sys.path.append('../')
@@ -13,7 +13,6 @@ import tweepy
 import json 
 import pandas as pd
 from location_utils import LocationUtils
-from database.db_utils import DB_Utils
 import os
 import time
 
@@ -23,8 +22,7 @@ AUS = [113.62,-44.1,153.14,-10.75]
 
 #Connect to DB
 DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "comp90024_tweet_harvest" 
-ADDRESS='http://admin:admin@45.113.235.136:15984'
-#ADDRESS = os.environ.get('ADDRESS') if os.environ.get('ADDRESS') != None else "http://admin:admin@45.113.235.136:15984/"
+ADDRESS = os.environ.get('ADDRESS') if os.environ.get('ADDRESS') != None else "http://admin:admin@45.113.235.136:15984/"
 server = couchdb.Server(ADDRESS)
 db_conn = server[DB_NAME]
 
@@ -63,7 +61,6 @@ class CustomStreamListener(tweepy.StreamListener):
             gridsearch = location_geojson.search_grid(loc)
         
             if gridsearch[0] == True:
-                #tweet_id = tweet_data['id_str']
                 tweet_data['_id'] = tweet_data.pop('id_str')
                 tweet_data['place']['AURIN_id'] = gridsearch[1]
                 tweet_data['place']['AURIN_loc_name'] = gridsearch[2]
