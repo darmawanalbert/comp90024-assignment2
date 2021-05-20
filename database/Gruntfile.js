@@ -13,7 +13,8 @@ module.exports = function (grunt) {
         "couch-compile": {
           dbs: {
             files: {
-              "/tmp/comp90024_tweet_harvest.json": "couchdb/comp90024_tweet_harvest/topic_modelling"
+              "/tmp/comp90024_tweet_harvest.json": "couchdb/comp90024_tweet_harvest/topic_modelling",
+              "/tmp/comp90024_lda_scoring.json": "couchdb/comp90024_lda_scoring/lda_topic"
             }
           }
         },
@@ -24,7 +25,8 @@ module.exports = function (grunt) {
           },
           twitter: {
             files: {
-              "http://admin:admin@localhost:15984/comp90024_tweet_harvest": "/tmp/comp90024_tweet_harvest.json"
+              "http://admin:admin@localhost:15984/comp90024_tweet_harvest": "/tmp/comp90024_tweet_harvest.json",
+              "http://admin:admin@localhost:15984/comp90024_lda_scoring": "/tmp/comp90024_lda_scoring.json"
             }
           }
         }
