@@ -11,7 +11,9 @@ export masternode=`echo ${nodes} | cut -f1 -d' '`
 export declare -a ports=(15984 25984)
 export masterport=`echo ${ports} | cut -f1 -d' '`
 export declare -a indexdb=(0 1)
-export declare -a dblist=(comp90024_tweet_harvest comp90024_tweet_search)
+export declare -a dblist=(comp90024_tweet_harvest comp90024_tweet_search\
+                          comp90024_lda_scoring comp90024_aurin_statistics)
+export declare -a replist=(harvest_rep search_rep lda_scoring_rep aurin_stats_rep)
 export size=${#nodes[@]}
 export dbsize=${#dblist[@]}
 export user='admin'
@@ -38,9 +40,10 @@ fi
 
 sudo docker create\
   --name mastercouchdb\
-  --net=couch\
+  --network-alias couchdb@${masternode}\
   --hostname couchdb@${masternode}\
   -p ${masterport}:5984\
+  -p 5986:5986\
   -p 4369:4369\
   -p 9100:9100\
   -v /opt/couchdb/master/data:/opt/couchdb/data\
@@ -51,6 +54,8 @@ sudo docker create\
   --env ERL_FLAGS="-setcookie \"${cookie}\" -name \"couchdb@${masternode}\"\
   -kernel \"inet_dist_listen_min 9100\" -kernel \"inet_dist_listen_max 9100\""\
   couchdb:${VERSION}
+
+#   --net=couch\
 
 echo "===== done create ====="
 echo " "
@@ -85,7 +90,9 @@ for (( i=0; i<${size}; i++ )); do
     curl -X POST -H "Content-Type: application/json" http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_cluster_setup \
         -d "{\"action\": \"enable_cluster\", \"bind_address\":\"0.0.0.0\", \"username\": \"${user}\", \"password\":\"${pass}\", \
         \"node_count\":\"${size}\"}"
+    curl -X GET "http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_membership"
     sleep 2
+
 done
 
 echo "===== Add nodes to cluster ====="
@@ -93,7 +100,7 @@ for (( i=0; i<${size}; i++ )); do
     if [ "${nodes[${i}]}" != "${masternode}" ]; then
         curl -X POST -H 'Content-Type: application/json' http://${user}:${pass}@${masternode}:${masterport}/_cluster_setup \
             -d "{\"action\": \"enable_cluster\", \"bind_address\":\"0.0.0.0\", \"username\": \"${user}\", \"password\":\"${pass}\", \
-            \"port\": ${ports[${i}]}, \"node_count\": \"${size}\", \"remote_node\": \"${nodes[${i}]}\", \"remote_current_user\": \"${user}\", \
+            \"port\": ${ports[${i}]}, \"node_count\": \"${size}\", \"remote_node\": \"http://${nodes[${i}]}\", \"remote_current_user\": \"${user}\", \
             \"remote_current_password\": \"${pass}\"}"
         curl -X POST -H 'Content-Type: application/json' http://${user}:${pass}@${masternode}:${masterport}/_cluster_setup \
             -d "{\"action\": \"add_node\", \"host\":\"${nodes[${i}]}\", \"port\": ${ports[${i}]}, \"username\": \"${user}\", \
@@ -117,7 +124,7 @@ sleep 5
 
 echo "===== perform checking on the couchdb setup ======"
 # check whether cluster configuration is finished
-for (( i=0; i<${size}; i++ )); do  curl -X GET "http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_membership"; done
+for (( i=0; i<${size}; i++ )); do curl -X GET "http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/_membership"; done
 
 # add database in dblist and check whether it is created in other nodes as well
 for db in ${dblist[@]}
@@ -131,11 +138,12 @@ echo " "
 
 echo "===== setup replicator ====="
 for (( i=0; i<${size}; i++ )); do
+    declare workercurl=http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}
     if [ "${nodes[${i}]}" != "${masternode}" ]; then
-        for db in ${dblist[@]}; do
+        for (( i=0; i<${dbsize}; i++ )); do
             curl -X POST -H "Content-Type: application/json" http://${user}:${pass}@${masternode}:${masterport}/_replicator \
-                -d "{\"_id\": \"my_rep\", \"source\": \"http://${user}:${pass}@${masternode}:${masterport}/${db}\", \
-                \"target\": \"http://${user}:${pass}@${nodes[${i}]}:${ports[${i}]}/${db}\", \"create_target\": true, \
+                -d "{\"_id\": \"${replist[${i}]}\", \"source\": \"http://${user}:${pass}@${masternode}:${masterport}/${dblist[${i}]}\", \
+                \"target\": \"${workercurl}/${dblist[${i}]}\", \"create_target\": true, \
                 \"continuous\": true}"
         done
     fi
