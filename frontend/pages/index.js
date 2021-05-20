@@ -12,7 +12,7 @@ import Head from 'next/head';
 
 import { Navbar, Mapbox } from '../components/index';
 
-export default function Home() {
+export default function Home({ apiUrl }) {
     return (
         <div>
             <Head>
@@ -21,8 +21,17 @@ export default function Home() {
             </Head>
             <main>
                 <Navbar />
-                <Mapbox />
+                <Mapbox apiUrl={apiUrl} />
             </main>
         </div>
     );
+}
+
+export async function getStaticProps() {
+    const apiUrl = process.env.API_URL;
+    return {
+        props: {
+            apiUrl,
+        },
+    };
 }

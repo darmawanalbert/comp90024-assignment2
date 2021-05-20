@@ -13,8 +13,8 @@ const useMapInfo = (apiUrl) => {
     const { data, error } = useSWR(`${apiUrl}/cities`);
     return {
         mapInfo: data,
-        isLoading: !error && !data,
-        isError: error,
+        isMapInfoLoading: !error && !data,
+        isMapInfoError: error,
     };
 };
 

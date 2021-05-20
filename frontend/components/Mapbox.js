@@ -29,7 +29,7 @@ const mapContainerStyle = {
     width: '100vw',
 };
 
-const Mapbox = () => {
+const Mapbox = ({ apiUrl }) => {
     const [isComponentMounted, setIsComponentMounted] = useState(false);
     const mapContainer = useRef();
     const [lng, setLng] = useState(144.9637);
@@ -140,6 +140,21 @@ const Mapbox = () => {
                         </Tr>
                     </Thead>
                     <Tbody>
+                        <Tr>
+                            <Td>1</Td>
+                            <Td>Business</Td>
+                            <Td isNumeric>104</Td>
+                        </Tr>
+                        <Tr>
+                            <Td>2</Td>
+                            <Td>Politics</Td>
+                            <Td isNumeric>58</Td>
+                        </Tr>
+                        <Tr>
+                            <Td>3</Td>
+                            <Td>Entertainment</Td>
+                            <Td isNumeric>10</Td>
+                        </Tr>
                         <Tr>
                             <Td>1</Td>
                             <Td>Business</Td>
