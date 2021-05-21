@@ -1,8 +1,5 @@
-import couchdb
-
-ADDRESS='http://admin:admin@45.113.235.136:15984'
-DB_NAME = 'test_new1'
-
-server = couchdb.Server(ADDRESS)
-
-print(server[DB_NAME])
+import csv
+file2 = open('sinceID.csv', 'w')
+writer = csv.writer(file2)
+writer.writerow('abc')
+file2.close()

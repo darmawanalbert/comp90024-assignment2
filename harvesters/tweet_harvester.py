@@ -1,9 +1,9 @@
-# COMP90024 Team 1
-# Albert Darmawan (1168452) - darmawana@student.unimelb.edu.au
-# Clarisca Lawrencia (1152594) - clawrencia@student.unimelb.edu.au
-# I Gede Wibawa Cakramurti (1047538) - icakramurti@student.unimelb.edu.au
-# Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
-# Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
+#COMP90024 Team 1
+#Albert, Darmawan (1168452) - Jakarta, ID - darmawana@student.unimelb.edu.au
+##Clarisca, Lawrencia (1152594) - Melbourne, AU - clawrencia@student.unimelb.edu.au
+#I Gede Wibawa, Cakramurti (1047538) - Melbourne, AU - icakramurti@student.unimelb.edu.au
+#Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
+#Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
 
 import sys
 sys.path.append('../')
@@ -59,8 +59,10 @@ class CustomStreamListener(tweepy.StreamListener):
             loc = tweet_data["place"]['bounding_box']['coordinates'][0]
 
             gridsearch = location_geojson.search_grid(loc)
-        
+            #Check if the tweets is located within the grid
             if gridsearch[0] == True:
+                #Change the _id to id_str of the tweet to avoid duplication in db
+                #Add aurin location ID and aurin location name
                 tweet_data['_id'] = tweet_data.pop('id_str')
                 tweet_data['place']['AURIN_id'] = gridsearch[1]
                 tweet_data['place']['AURIN_loc_name'] = gridsearch[2]
