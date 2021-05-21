@@ -55,6 +55,12 @@ export default function Home() {
         console.log(res.data)
     }
 
+    async function getLdaScores() {
+        const res = await api.get('/lda_scoring', { params: { start_date: '[2021, 5, 9]' } })
+
+        console.log(res.data)
+    }
+
 
 
     // getCities();
@@ -64,8 +70,9 @@ export default function Home() {
     // getMedianIncomes();
     // getAge();
     // getAges();
-    getUnemployment();
-    getUnemployments();
+    // getUnemployment();
+    // getUnemployments();
+    getLdaScores();
 
     // APIs for later use
     // // Get data for all available charts
