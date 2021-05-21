@@ -7,12 +7,14 @@ Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
 Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
 */
 
-import { extendTheme } from '@chakra-ui/react';
+import React from 'react';
+import ReactWordcloud from 'react-wordcloud';
 
-const config = {
-    initialColorMode: 'light',
-    useSystemColorMode: false,
+const options = {
+    fontFamily: 'Arial',
+    fontSizes: [12, 60],
 };
 
-const theme = extendTheme({ config });
-export default theme;
+const WordCloud = ({ data }) => (<ReactWordcloud words={data} options={options} />);
+
+export default WordCloud;
