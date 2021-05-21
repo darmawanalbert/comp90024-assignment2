@@ -1,9 +1,10 @@
-#COMP90024 Team 1
-#Albert, Darmawan (1168452) - Jakarta, ID - darmawana@student.unimelb.edu.au
-##Clarisca, Lawrencia (1152594) - Melbourne, AU - clawrencia@student.unimelb.edu.au
-#I Gede Wibawa, Cakramurti (1047538) - Melbourne, AU - icakramurti@student.unimelb.edu.au
-#Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
-#Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
+# COMP90024 Team 1
+# Albert, Darmawan (1168452) - Jakarta, ID - darmawana@student.unimelb.edu.au
+# Clarisca, Lawrencia (1152594) - Melbourne, AU - clawrencia@student.unimelb.edu.au
+# I Gede Wibawa, Cakramurti (1047538) - Melbourne, AU - icakramurti@student.unimelb.edu.au
+# Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
+# Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
+
 
 
 import os
@@ -11,9 +12,10 @@ from shapely.geometry import Point, MultiPolygon
 from shapely.geometry.polygon import Polygon
 import sys
 import json
-sys.path.append('../')
+# sys.path.append('../')
 
-GEOJSON_ADDRESS='../frontend/components/cities_top50_simplified.geojson'
+# GEOJSON_ADDRESS='../frontend/components/cities_top50_simplified.geojson'
+GEOJSON_ADDRESS = os.environ.get('GEOJSON_ADDRESS') if os.environ.get('GEOJSON_ADDRESS') != None else "cities_top50_simplified.geojson" 
 current_path = os.path.dirname(__file__)
 new_path = os.path.relpath(GEOJSON_ADDRESS,current_path)
 
@@ -21,7 +23,7 @@ class LocationUtils():
     def __init__(self):
         try:
             self.location_grid = []
-            with open(new_path,'r') as f:
+            with open(GEOJSON_ADDRESS,'r') as f:
                 self.geo_location = json.load(f)
             for i in range(len(self.geo_location['features'])):
                 self.location_dict = {}

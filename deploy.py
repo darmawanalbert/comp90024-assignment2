@@ -1,9 +1,9 @@
 # COMP90024 Team 1
-# Albert Darmawan (1168452) - darmawana@student.unimelb.edu.au
-# Clarisca Lawrencia (1152594) - clawrencia@student.unimelb.edu.au
-# I Gede Wibawa Cakramurti (1047538) - icakramurti@student.unimelb.edu.au
-# Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
-# Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
+# Albert, Darmawan (1168452) - Jakarta, ID - darmawana@student.unimelb.edu.au
+# Clarisca, Lawrencia (1152594) - Melbourne, AU - clawrencia@student.unimelb.edu.au
+# I Gede Wibawa, Cakramurti (1047538) - Melbourne, AU - icakramurti@student.unimelb.edu.au
+# Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
+# Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
 
 import openstack
 import os, shutil
@@ -13,6 +13,7 @@ from datetime import datetime
 import glob
 from pathlib import Path
 import json
+from shutil import copyfile
 
 SERVER_NAME_LIST = [
     {'name': 'instance1','flavor': 'uom.mse.1c4g','keypair': 'keypair-instance1'},
@@ -51,6 +52,12 @@ def create_connection(auth_url, project_name, username, password, region_name,
         app_name=app_name,
         app_version=app_version,
     )
+
+def execute_command(command_bash):
+    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
+    output, error = result.communicate()
+    output = output.decode("utf-8").split('\n')
+    print(output)
 
 def delete_all_instances(conn):
     for server in conn.compute.servers():
@@ -167,11 +174,7 @@ def setup_docker(conn):
 
 def swarm_leave(server_instance1):
     try:
-        command_bash = f"ssh -oStrictHostKeyChecking=no -i {server_instance1['keypair']} {DEFAULT_USER}@{server_instance1['addr']} sudo docker swarm leave -f"
-        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-        output, error = result.communicate()
-        output = output.decode("utf-8").split('\n')
-        print(output)
+        execute_command(f"ssh -oStrictHostKeyChecking=no -i {server_instance1['keypair']} {DEFAULT_USER}@{server_instance1['addr']} sudo docker swarm leave -f")
         return True
     except Exception as err:
         print(f"ERROR {err}")
@@ -198,11 +201,7 @@ def setup_swarm_join(server_list, token_join_swarm):
     for server in server_list:
         print(server)
         try:
-            command_bash = f"ssh -i {server_list[server]['keypair']} {DEFAULT_USER}@{server_list[server]['addr']} sudo {token_join_swarm}"
-            result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-            output, error = result.communicate()
-            output = output.decode("utf-8")
-            print(output)
+            execute_command(f"ssh -i {server_list[server]['keypair']} {DEFAULT_USER}@{server_list[server]['addr']} sudo {token_join_swarm}")
         except Exception as err:
             print(f"ERROR {err}")
 
@@ -260,72 +259,43 @@ def create_constants_file(server_list):
 
 def setup_nginx(instance1):
     print(f"Copy default.conf to remote machine [{instance1['addr']}].")
-    command_bash = f"scp -oStrictHostKeyChecking=no -i {instance1['keypair']}  {LOCAL_NGINX_FOLDER}/default.conf {DEFAULT_USER}@{instance1['addr']}:default.conf "
-    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-    output, error = result.communicate()
+    execute_command(f"scp -oStrictHostKeyChecking=no -i {instance1['keypair']}  {LOCAL_NGINX_FOLDER}/default.conf {DEFAULT_USER}@{instance1['addr']}:default.conf ")
     print(f"default.conf has been copied to remote machine [{instance1['addr']}].")
 
     print(f"Execute NGINX in instance1 [{instance1['addr']}].")
-    command_bash = f"ssh -oStrictHostKeyChecking=no -i {instance1['keypair']} {DEFAULT_USER}@{instance1['addr']} sudo ufw allow 'Nginx HTTP' "
-    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-    output, error = result.communicate()
+    execute_command(f"ssh -oStrictHostKeyChecking=no -i {instance1['keypair']} {DEFAULT_USER}@{instance1['addr']} sudo ufw allow 'Nginx HTTP' ")
+    execute_command(f"ssh -oStrictHostKeyChecking=no -i {instance1['keypair']} {DEFAULT_USER}@{instance1['addr']} sudo cp default.conf /etc/nginx/conf.d/load-balancer.conf ")
+    execute_command(f"ssh -oStrictHostKeyChecking=no -i {instance1['keypair']} {DEFAULT_USER}@{instance1['addr']} sudo rm /etc/nginx/sites-enabled/default ")
 
-    command_bash = f"ssh -oStrictHostKeyChecking=no -i {instance1['keypair']} {DEFAULT_USER}@{instance1['addr']} sudo cp default.conf /etc/nginx/conf.d/load-balancer.conf "
-    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-    output, error = result.communicate()
-
-    command_bash = f"ssh -oStrictHostKeyChecking=no -i {instance1['keypair']} {DEFAULT_USER}@{instance1['addr']} sudo rm /etc/nginx/sites-enabled/default "
-    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-    output, error = result.communicate()
-
-    command_bash = f"ssh -oStrictHostKeyChecking=no -i {instance1['keypair']} {DEFAULT_USER}@{instance1['addr']} sudo systemctl restart nginx "
-    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-    output, error = result.communicate()
-
+    execute_command(f"ssh -oStrictHostKeyChecking=no -i {instance1['keypair']} {DEFAULT_USER}@{instance1['addr']} sudo systemctl restart nginx ")
     print(f"NGINX has been setup in [{instance1['addr']}].")
 
 def setup_docker_compose(instance1):
     # copy docker-compose
     print(f"Copy {LOCAL_DOCKER_COMPOSE} to remote machine [{instance1['addr']}].")
-    command_bash = f"scp -oStrictHostKeyChecking=no -i {instance1['keypair']} {LOCAL_DOCKER_COMPOSE} {DEFAULT_USER}@{instance1['addr']}:{LOCAL_DOCKER_COMPOSE} "
-    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-    output, error = result.communicate()
+    execute_command(f"scp -oStrictHostKeyChecking=no -i {instance1['keypair']} {LOCAL_DOCKER_COMPOSE} {DEFAULT_USER}@{instance1['addr']}:{LOCAL_DOCKER_COMPOSE} ")
     print(f"{LOCAL_DOCKER_COMPOSE} has been copied to remote machine [{instance1['addr']}].")
 
     # execute docker stack deploy -c docker-compose.yml
     print(f"Execute docker stack deploy {DOCKER_APP_NAME}.")
-    command_bash = f"ssh -oStrictHostKeyChecking=no -i {instance1['keypair']} {DEFAULT_USER}@{instance1['addr']} sudo docker stack deploy {DOCKER_APP_NAME} -c {LOCAL_DOCKER_COMPOSE} "
-    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-    output, error = result.communicate()
-    output = output.decode("utf-8").split('\n')
-    print(output)
+    execute_command(f"ssh -oStrictHostKeyChecking=no -i {instance1['keypair']} {DEFAULT_USER}@{instance1['addr']} sudo docker stack deploy {DOCKER_APP_NAME} -c {LOCAL_DOCKER_COMPOSE} ")
 
 def setup_couchdb(instance4):
     print(f"Copy all {DATABASE_SETUP_FOLDER} folder to remote machine [{instance4['addr']}].")
-    command_bash = f"scp -oStrictHostKeyChecking=no -i {instance4['keypair']} -r {DATABASE_SETUP_FOLDER} {DEFAULT_USER}@{instance4['addr']}:{DATABASE_SETUP_FOLDER} "
-    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-    output, error = result.communicate()
+    execute_command(f"scp -oStrictHostKeyChecking=no -i {instance4['keypair']} -r {DATABASE_SETUP_FOLDER} {DEFAULT_USER}@{instance4['addr']}:{DATABASE_SETUP_FOLDER} ")
     print(f"{LOCAL_DOCKER_COMPOSE} has been copied to remote machine [{instance4['addr']}].")
 
     # set env variable
     print(f"Set up couchdb in instance4: {instance4['addr']}.")
-    command_bash = f"ssh -oStrictHostKeyChecking=no -i {instance4['keypair']} {DEFAULT_USER}@{instance4['addr']} chmod +x {DATABASE_SETUP_FOLDER}setup_db.sh && sudo ./{DATABASE_SETUP_FOLDER}setup_db.sh "
-    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-    output, error = result.communicate()
-    output = output.decode("utf-8").split('\n')
-    print(output)
+    execute_command(f"ssh -oStrictHostKeyChecking=no -i {instance4['keypair']} {DEFAULT_USER}@{instance4['addr']} chmod +x {DATABASE_SETUP_FOLDER}setup_db.sh && sudo ./{DATABASE_SETUP_FOLDER}setup_db.sh ")
 
 def setup_harvester(instance4):
     print(f"Copy all harvester folder to remote machine [{instance4['addr']}].")
-    command_bash = f"scp -oStrictHostKeyChecking=no -i {instance4['keypair']} -r {HARVESTERS_FOLDER} {DEFAULT_USER}@{instance4['addr']}:{HARVESTERS_FOLDER} "
-    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-    output, error = result.communicate()
+    execute_command(f"scp -oStrictHostKeyChecking=no -i {instance4['keypair']} -r {HARVESTERS_FOLDER} {DEFAULT_USER}@{instance4['addr']}:{HARVESTERS_FOLDER} ")
     print(f"{HARVESTERS_FOLDER} has been copied to remote machine [{instance4['addr']}].")
 
     print(f"Execute harvester app [{instance4['addr']}].")
-    command_bash = f"ssh -oStrictHostKeyChecking=no -i {instance4['keypair']} {DEFAULT_USER}@{instance4['addr']} sudo docker-compose -f {HARVESTERS_FOLDER}docker-compose.yml up -d"
-    result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-    output, error = result.communicate()
+    execute_command(f"ssh -oStrictHostKeyChecking=no -i {instance4['keypair']} {DEFAULT_USER}@{instance4['addr']} sudo docker-compose -f {HARVESTERS_FOLDER}docker-compose.yml up -d")
     print(f"Execute harvester app in [{instance4['addr']}].")
 
 def delete_local_keypairs():
@@ -375,13 +345,6 @@ def deploy_all():
         # setup join swarm 
         setup_swarm_join(server_list, swarm_join_token)
 
-        # setup couchdb
-        setup_couchdb(instance4)
-
-        # setup harvester
-        create_harvester_docker_compose(instance4['addr'])
-        setup_harvester(instance4)
-
         # create docker-compose.yml
         create_docker_compose(instance4['addr'])
 
@@ -395,8 +358,8 @@ def deploy_all():
         # setup nginx
         setup_nginx(instance1)
 
-        # create config file
-        create_config_file(server_list)
+        # update source app
+        update_app()
 
     except Exception as err:
         print(f"ERROR: {err}")
@@ -404,93 +367,62 @@ def deploy_all():
 def update_app():
     try:
         conn = create_connection(os.getenv('OS_AUTH_URL'),os.getenv('OS_PROJECT_NAME'), os.getenv('OS_USERNAME'),os.getenv('OS_PASSWORD_INPUT'),os.getenv('OS_REGION_NAME'),os.getenv('OS_USER_DOMAIN_NAME'),os.getenv('OS_PROJECT_DOMAIN_ID'),os.getenv('OS_PROJECT_NAME'),os.getenv('OS_IDENTITY_API_VERSION'))
+        
         instance1_addr = None
+        instance2_addr = None
+        instance3_addr = None
         instance4_addr = None
+        
         server_list = {}
         for server in conn.compute.servers():
-            if(server.name == 'instance1'):
-                instance1_addr = server.addresses[NETWORK_NAME][0]['addr']
-            elif(server.name == 'instance4'):
-                instance4_addr = server.addresses[NETWORK_NAME][0]['addr']
             server_list[server.name] = { 'addr' : server.addresses[NETWORK_NAME][0]['addr'], 'keypair' : f'{FOLDER_NAME}keypair-{server.name}' }
         
         create_config_file(server_list)
         create_constants_file(server_list)
+        create_harvester_docker_compose(server_list['instance4']['addr'])
+
+        copyfile("config.json", "frontend/config.json")
+        copyfile("config.json", "services/config.json")
+        copyfile("config.json", "harvesters/config.json")
+        copyfile("constants.sh", "database/constants.sh")
+
+        os.environ["INSTANCE1"] = server_list['instance1']['addr']
+        os.environ["INSTANCE2"] = server_list['instance2']['addr']
+        os.environ["INSTANCE3"] = server_list['instance3']['addr']
+        os.environ["INSTANCE4"] = server_list['instance4']['addr']
+
+        print(f"Instance 1 ip address:", os.environ["INSTANCE1"])
+        print(f"Instance 2 ip address:", os.environ["INSTANCE2"])
+        print(f"Instance 3 ip address:", os.environ["INSTANCE3"])
+        print(f"Instance 4 ip address:", os.environ["INSTANCE4"])
         
-        print(f"Instance 1 ip address: {instance1_addr}")
-        print(f"Instance 4 ip address: {instance4_addr}")
+        # # setup couchdb
+        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance3 ubuntu@{instance3_addr} sudo rm -r database/ ")
+        # execute_command(f"scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance3 -r database/ ubuntu@{instance3_addr}:database/ ")
+        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance3 ubuntu@{instance3_addr} 'bash -s' < ./database/setup_workerdb1.sh ")
+        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo rm -r database/ ")
+        # execute_command(f"scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 -r database/ ubuntu@{instance4_addr}:database/ ")
+        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} 'bash -s' < ./database/setup_masterdb.sh ")
+        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} npm --prefix ./database/ install ./database/ ")
+        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} grunt --gruntfile ./database/Gruntfile.js couch-compile ")
+        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} grunt --gruntfile ./database/Gruntfile.js couch-push ")
         
-        command_bash = f"docker-compose build "
-        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-        output, error = result.communicate()
-        output = output.decode("utf-8").split('\n')
-        print(output)
+        # # setup harvesters app
+        # execute_command(f"scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 -r harvesters/ ubuntu@{instance4_addr}:harvesters/ ")
+        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo docker-compose -f harvesters/docker-compose.yml build ")
+        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo docker-compose -f harvesters/docker-compose.yml pull ")
+        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo docker-compose -f harvesters/docker-compose.yml up --force-recreate --build -d")
 
-        command_bash = f"docker-compose push "
-        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-        output, error = result.communicate()
-        output = output.decode("utf-8").split('\n')
-        print(output)
+        # # build frontend and service image
+        # execute_command(f"docker-compose build ")
+        # execute_command(f"docker-compose push ")
 
-        # command_bash = f"docker-compose -f harvesters/docker-compose.yml build "
-        # result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-        # output, error = result.communicate()
-        # output = output.decode("utf-8").split('\n')
-        # print(output)
+        # # setup frontend and service docker app
+        # execute_command(f"ssh -i keypairs/keypair-instance1 ubuntu@{instance1_addr} sudo rm docker-compose.yml ")
+        # execute_command(f"scp -i keypairs/keypair-instance1 docker-compose.yml ubuntu@{instance1_addr}:docker-compose.yml ")
+        # execute_command(f"ssh -i keypairs/keypair-instance1 ubuntu@{instance1_addr} sudo docker stack deploy comp90024 -c docker-compose.yml ")
 
-        # command_bash = f"docker-compose -f harvesters/docker-compose.yml push "
-        # result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-        # output, error = result.communicate()
-        # output = output.decode("utf-8").split('\n')
-        # print(output)
-
-        command_bash = f"ssh -i keypairs/keypair-instance1 ubuntu@{instance1_addr} sudo rm docker-compose.yml "
-        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-        output, error = result.communicate()
-        output = output.decode("utf-8").split('\n')
-        print(output)
-
-        command_bash = f"scp -i keypairs/keypair-instance1 docker-compose.yml ubuntu@{instance1_addr}:docker-compose.yml "
-        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-        output, error = result.communicate()
-        output = output.decode("utf-8").split('\n')
-        print(output)
-
-        command_bash = f"ssh -i keypairs/keypair-instance1 ubuntu@{instance1_addr} sudo docker stack deploy comp90024 -c docker-compose.yml "
-        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-        output, error = result.communicate()
-        output = output.decode("utf-8").split('\n')
-        print(output)
-
-        command_bash = f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo rm -r harvesters/ "
-        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-        output, error = result.communicate()
-        output = output.decode("utf-8").split('\n')
-        print(output)
-
-        command_bash = f"scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 -r harvesters/ ubuntu@{instance4_addr}:harvesters/ "
-        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-        output, error = result.communicate()
-        output = output.decode("utf-8").split('\n')
-        print(output)
-
-        command_bash = f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo docker-compose -f harvesters/docker-compose.yml build "
-        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-        output, error = result.communicate()
-        output = output.decode("utf-8").split('\n')
-        print(output)
-
-        command_bash = f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo docker-compose -f harvesters/docker-compose.yml pull "
-        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-        output, error = result.communicate()
-        output = output.decode("utf-8").split('\n')
-        print(output)
-
-        command_bash = f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo docker-compose -f harvesters/docker-compose.yml up --force-recreate --build -d"
-        result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
-        output, error = result.communicate()
-        output = output.decode("utf-8").split('\n')
-        print(output)
+        sp.call("./run_deploy_source.sh", shell=True)
 
     except Exception as err:
         print(f"ERROR: {err}")
@@ -523,7 +455,6 @@ def main():
                 print(f"ended at {end}, in {end - start}")
 
                 input('press ENTER to continue')
-                # deploy_all()
             elif _input == "2":
                 start = datetime.now()
                 print(f"started at {start}")
