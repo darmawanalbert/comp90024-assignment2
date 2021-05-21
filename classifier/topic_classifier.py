@@ -1,9 +1,9 @@
-# COMP90024 Team 1
-# Albert Darmawan (1168452) - darmawana@student.unimelb.edu.au
-# Clarisca Lawrencia (1152594) - clawrencia@student.unimelb.edu.au
-# I Gede Wibawa Cakramurti (1047538) - icakramurti@student.unimelb.edu.au
-# Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
-# Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
+#COMP90024 Team 1
+#Albert, Darmawan (1168452) - Jakarta, ID - darmawana@student.unimelb.edu.au
+##Clarisca, Lawrencia (1152594) - Melbourne, AU - clawrencia@student.unimelb.edu.au
+#I Gede Wibawa, Cakramurti (1047538) - Melbourne, AU - icakramurti@student.unimelb.edu.au
+#Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
+#Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
 
 
 # Installing the necessary packages for Machine Learning Modelling
@@ -21,6 +21,9 @@ from nltk.stem import WordNetLemmatizer
 from gensim.corpora import Dictionary
 from gensim.models.ldamodel import LdaModel
 import os
+import sys
+
+sys.path.append('../')
 
 #Download required nltk  files
 nltk.download('stopwords')
@@ -35,8 +38,13 @@ server = couchdb.Server(ADDRESS)
 db_conn = server[DB_NAME]
 
 #Defining the view object
-db_views = "http://admin:admin@45.113.235.136:15984/comp90024_tweet_harvest/_design/topic_modelling/_view/by_date_and_place"
-obj = {"key": [[2021, 5, 9],'Melbourne']} #Key will be defined from services (date and location)
+db_views_stream = "http://admin:admin@45.113.235.136:15984/comp90024_tweet_harvest/_design/topic_modelling/_view/by_date_and_place"
+db_views_search = "http://admin:admin@45.113.235.136:15984/comp90024_tweet_search/_design/topic_modelling/_view/by_date_and_place_v2"
+
+#top 50 cities file path
+GEOJSON_ADDRESS='../frontend/components/cities_top50_simplified.geojson'
+current_path = os.path.dirname(__file__)
+new_path = os.path.relpath(GEOJSON_ADDRESS,current_path)
 
 #Defining the file path of the subject corpus
 POLITICS_FILE='politics.txt'
@@ -46,22 +54,38 @@ ENTERTAINMENT_FILE = 'entertainment.txt'
 EDUCATION_FILE= 'education.txt'
 BUSINESS_FILE = 'business.txt'
 
+#A function to load the top 50 cities' names
+def load_top50_cities(file_name):
+    try:
+        city_names = []
+        with open(file_name,'r') as f:
+            geo_location = json.load(f)
+        for i in range(len(geo_location['features'])):
+            city_name = geo_location['features'][i]['properties']['UCL_NAME_2016']
+            city_names.append(city_name)
+    except Exception as e:
+            print(e)
+    return city_names
+
 # A function to load the subject corpus
 def load_txt(file_name):
     list_word=[]
-    with open(file_name) as phrases:
-        for word in phrases:
-            word = word.lower()
-            word = re.sub(r'[^\w\s]','',word)
-            word = word.strip()
-            word = word.split()
-            i=0
-            temp_word=''
-            while i < len(word):
-                temp_word = temp_word+" "+word[i]
-                temp_word = temp_word.lstrip()
-                i+=1
-            list_word.append(temp_word)
+    try:
+        with open(file_name) as phrases:
+            for word in phrases:
+                word = word.lower()
+                word = re.sub(r'[^\w\s]','',word)
+                word = word.strip()
+                word = word.split()
+                i=0
+                temp_word=''
+                while i < len(word):
+                    temp_word = temp_word+" "+word[i]
+                    temp_word = temp_word.lstrip()
+                    i+=1
+                list_word.append(temp_word)
+    except Exception as e:
+        print(e)
     return list_word
 
 # A function to extract the lenght of the longest word in the corpus
@@ -174,7 +198,7 @@ def main():
 
     #Load Corpus
     education = load_txt(EDUCATION_FILE)
-    entertaintment = load_txt(ENTERTAINMENT_FILE)
+    entertainment = load_txt(ENTERTAINMENT_FILE)
     places = load_txt(PLACES_FILE)
     sports = load_txt(SPORTS_FILE)
     politics = load_txt(POLITICS_FILE)
@@ -188,37 +212,52 @@ def main():
     places_max_word  = longest_word(PLACES_FILE)
     entertainment_max_word  = longest_word(ENTERTAINMENT_FILE)
 
-    #Obtaining data from db
-    tweets_data = get_data_db(db_views,obj)
+    #Load the top 50 cities name 
+    #Iterate through the list to obtain views for each 50 cities
+    list_city = load_top50_cities(new_path)
+    for i in range(len(list_city)):
+        #Date will be in the form of args later 
+        obj = {"key": [[2021, 5, 9],list_city[i]]} 
+        #Obtaining data from db
+        tweets_stream = get_data_db(db_views_stream,obj)
+        tweets_search = get_data_db(db_views_search,obj)
 
-    #Pre-processing of tweet file
-    tweet_text= tweets_data['text'].str.replace(r"http\S+","")
-    tweet_text = tweet_text.apply(fix_encode)
-    tweet_text = tweet_text.apply(tokenize_text)
-    tweet_text = tweet_text.apply(remove_numbers)
-    tweet_text = tweet_text.apply(lemmatize_text)
+        #Combine data from search and stream
+        tweets_data = pd.concat([tweets_stream,tweets_search],ignore_index=True,sort=False)
+        
+        if not tweets_data.empty:      
+            #Pre-processing of tweet file
 
-    #Obtain topic keywords using LDA
-    lda_res = lda_topics(tweet_text)
+            #Drop duplicated tweet id
+            tweets_data.drop_duplicates(subset ="id",
+                     keep = 'first', inplace = True)
+            tweet_text= tweets_data['text'].str.replace(r"http\S+","")
+            tweet_text = tweet_text.apply(fix_encode)
+            tweet_text = tweet_text.apply(tokenize_text)
+            tweet_text = tweet_text.apply(remove_numbers)
+            tweet_text = tweet_text.apply(lemmatize_text)
 
-    #Obtain the score for each subject category
-    sports_score = get_score(sports,tweet_text,sports_max_word)
-    places_score = get_score(places,tweet_text, places_max_word)
-    politics_score = get_score(politics,tweet_text, politics_max_word)
-    education_score = get_score(education,tweet_text, education_max_word)
-    entertaintment_score = get_score(entertaintment,tweet_text, entertainment_max_word)
-    business_score = get_score(business, tweet_text, business_max_word)
-    
-    #Convert to dictionary file 
-    data_record =dict(date =str(obj['key'][0]), location=str(obj['key'][1]),
-                    lda_result = lda_res[1], score_sports = str(sports_score),
-                    score_places = str(places_score), score_politics= str(politics_score),
-                    score_education = str(education_score), score_entertaintment=str(entertaintment_score),
-                    score_business=str(business_score))
+            #Obtain topic keywords using LDA
+            lda_res = lda_topics(tweet_text)
 
-    try:
-        db_conn.save(data_record)  
-        print('Successfully recorded classifier data')
-    except Exception as e:
-        print(e)
+            #Obtain the score for each subject category
+            sports_score = get_score(sports,tweet_text,sports_max_word)
+            places_score = get_score(places,tweet_text, places_max_word)
+            politics_score = get_score(politics,tweet_text, politics_max_word)
+            education_score = get_score(education,tweet_text, education_max_word)
+            entertainment_score = get_score(entertainment,tweet_text, entertainment_max_word)
+            business_score = get_score(business, tweet_text, business_max_word)
+            
+            #Convert to dictionary file 
+            data_record =dict(date =str(obj['key'][0]), location=str(obj['key'][1]),
+                            lda_result = lda_res[1], score_sports = str(sports_score),
+                            score_places = str(places_score), score_politics= str(politics_score),
+                            score_education = str(education_score), score_entertainment=str(entertainment_score),
+                            score_business=str(business_score))
+            
+            try:
+                db_conn.save(data_record)  
+                print('Successfully recorded classifier data')
+            except Exception as e:
+                print(e)
 main() 
