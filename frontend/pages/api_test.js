@@ -61,8 +61,6 @@ export default function Home() {
         console.log(res.data)
     }
 
-
-
     // getCities();
     // getCharts();
     // getChart();

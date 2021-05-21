@@ -17,31 +17,10 @@ from flask_cors import CORS, cross_origin
 APP = Flask(__name__)
 CORS = CORS(APP, resources={r"/*": {"origins": "*"}})
 
-DB_HOST = os.environ.get('DBHOST') if os.environ.get('DBHOST') != None else "http://admin:admin@127.0.0.1:5984/"
-DB_NAME = os.environ.get('DBNAME') if os.environ.get('DBNAME') != None else "testdb"
-
-@APP.errorhandler(400)
-def handle_400_error(_error):
-    """Return a http 400 error to client"""
-    return make_response(jsonify({'error': 'Misunderstood'}), 400)
-
-
-@APP.errorhandler(401)
-def handle_401_error(_error):
-    """Return a http 401 error to client"""
-    return make_response(jsonify({'error': 'Unauthorised'}), 401)
-
-
-@APP.errorhandler(404)
-def handle_404_error(_error):
-    """Return a http 404 error to client"""
-    return make_response(jsonify({'error': 'Not found'}), 404)
-
-
-@APP.errorhandler(500)
-def handle_500_error(_error):
-    """Return a http 500 error to client"""
-    return make_response(jsonify({'error': 'Server error'}), 500)
+DB_HOST = os.environ.get('DBHOST') if os.environ.get('DBHOST') != None else "http://admin:admin@45.113.235.190:25984/"
+DB_NAME = os.environ.get('DBNAME') if os.environ.get('DBNAME') != None else "comp90024_lda_scoring/"
+DESIGN_LDA = "_design/lda_topic/"
+VIEW_LDA = "_view/score_output"
 
 @APP.route("/cities", methods=["GET"])
 @cross_origin()
@@ -119,29 +98,6 @@ def median_income():
 
     return ucl_income
 
-@APP.route('/median_income/all', methods=['GET'])
-@cross_origin()
-def median_income_all():
-    ucl_income = median_income()
-
-    return jsonify(ucl_income)
-
-@APP.route('/median_income', methods=['GET'])
-@cross_origin()
-def median_income_id():
-    
-    ucl_income = median_income()
-    UCL_CODE_2016 = 'UCL_CODE_2016'
-
-    if 'id' in request.args:
-        _id = request.args['id']
-    else:
-        return "Error: No id field provided. Please specify an id."
-
-    for ucl in ucl_income:
-        if ucl[UCL_CODE_2016] == _id:
-            return jsonify(ucl)
-
 def unemployment():
     sa2_aggregate = "./data/sa2_aggregate.json"
     path = "./data/SA2-G40_Selected_Labour_Force__Education_and_Migration_Characteristics_by_Sex-Census_2016.json"
@@ -182,29 +138,6 @@ def unemployment():
         ucl_unemployment.append(temp_dict)
 
     return ucl_unemployment
-
-@APP.route('/unemployment_rate/all', methods=['GET'])
-@cross_origin()
-def unemployment_all():
-    ucl_unemployment = unemployment()
-
-    return jsonify(ucl_unemployment)
-
-@APP.route('/unemployment_rate', methods=['GET'])
-@cross_origin()
-def unemployment_id():
-    ucl_unemployment = unemployment()
-
-    UCL_CODE_2016 = 'UCL_CODE_2016'
-
-    if 'id' in request.args:
-        _id = request.args['id']
-    else:
-        return "Error: No id field provided. Please specify an id."
-
-    for ucl in ucl_unemployment:
-        if ucl[UCL_CODE_2016] == _id:
-            return jsonify(ucl)
 
 def age():
     # Database access, later delete
@@ -259,28 +192,35 @@ def age():
 
     return ucl_age
 
+def raw_lda(req_params):
+    headers = {"content-type": "application/json"}
+    url = f"{DB_HOST}{DB_NAME}{DESIGN_LDA}{VIEW_LDA}"
 
-@APP.route("/age_25_34/all", methods=['GET'])
+    data = json.dumps(req_params).encode('utf-8')
+
+    scoring_data = requests.post(url, data=data, headers=headers)
+    scoring_json = json.loads(scoring_data.text)
+
+    return scoring_json
+
+@APP.route("/lda_scoring", methods=['GET'])
 @cross_origin()
-def age_all():
-    ucl_age = age()
-    return jsonify(ucl_age)
-
-@APP.route('/age_25_34', methods=['GET'])
-@cross_origin()
-def age_id():
-    ucl_age = age()
-
-    UCL_CODE_2016 = 'UCL_CODE_2016'
-
-    if 'id' in request.args:
-        _id = request.args['id']
+def lda_scoring():
+    if 'start_date' in request.args:
+        _startkey = json.loads(request.args['start_date']) # [2021, 5, 9] [YYYY, M, D]
+    if 'end_date' in request.args:
+        _endkey = json.loads(request.args['end_date'])
+    
+    if _startkey:
+       obj = {"startkey": [_startkey], "endkey": [_startkey, {}]} 
+    elif _startkey and _endkey:
+       obj = {"startkey": [_startkey], "endkey": [_endkey, {}]}
     else:
-        return "Error: No id field provided. Please specify an id."
+        return "Error: No start date provided. Please specify start date (and end date, if applicable)."
 
-    for ucl in ucl_age:
-        if ucl[UCL_CODE_2016] == _id:
-            return jsonify(ucl)
+    scoring_json = raw_lda(obj)
+
+    return jsonify(scoring_json["rows"])
 
 @APP.route("/")
 @cross_origin()
@@ -298,7 +238,6 @@ def home():
     return jsonify(count_dict)
     
 if __name__ == "__main__":
-    # app.run(host="127.0.0.1", port=18080, debug=True)
     PARSER = argparse.ArgumentParser(
         description="Group 1 COMP90024")
 
@@ -313,22 +252,3 @@ if __name__ == "__main__":
         APP.run(host=HOST, port=PORT, debug=True)
     else:
         APP.run(host=HOST, port=PORT, debug=False)
-
-# Wildan's for reference
-# @app.route("/",methods=["GET"])
-# def get():
-#     limit = 20
-#     skip = 0
-#     if(request.args.get('limit') != None):
-#         limit = request.args.get('limit')
-    
-#     if(request.args.get('skip') != None):
-#         skip = request.args.get('skip')
-
-#     url = f"{DB_HOST}{DB_NAME}"
-#     query = {"selector": {},"limit": int(limit), "skip": int(skip)}
-#     headers = {'Content-Type': 'application/json'}
-#     response = requests.post(f"{url}/_find",headers=headers,data=json.dumps(query))
-#     response_json = json.loads(response.text)
-
-#     return jsonify({ 'number' : len(response_json['docs']), 'data': response_json })
