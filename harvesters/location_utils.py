@@ -11,9 +11,7 @@ from shapely.geometry.polygon import Polygon
 import sys
 import json
 
-#sys.path.append('../')
 
-#GEOJSON_ADDRESS='../services/data/cities_top50_simplified.geojson'
 GEOJSON_ADDRESS = os.environ.get('GEOJSON_ADDRESS') if os.environ.get('GEOJSON_ADDRESS') != None else "cities_top50_simplified.geojson" 
 current_path = os.path.dirname(__file__)
 new_path = os.path.relpath(GEOJSON_ADDRESS,current_path)
