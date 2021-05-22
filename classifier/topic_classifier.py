@@ -5,8 +5,6 @@
 # Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
 # Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
 
-
-
 # Installing the necessary packages for Machine Learning Modelling
 import couchdb
 import requests
@@ -22,7 +20,7 @@ from nltk.stem import WordNetLemmatizer
 from gensim.corpora import Dictionary
 from gensim.models.ldamodel import LdaModel
 import os
-import sys
+import hashlib
 
 
 #Download required nltk  files
@@ -62,7 +60,7 @@ def load_top50_cities(file_name):
             geo_location = json.load(f)
         for i in range(len(geo_location['features'])):
             city_name = geo_location['features'][i]['properties']['UCL_NAME_2016']
-            city_names.append(city_name)
+            city_names.append(city_name.lower())
     except Exception as e:
             print(e)
     return city_names
@@ -158,11 +156,11 @@ def fix_encode(text):
 
     return text
 
-#A function to remove numeric values in the tweeta
+#A function to remove punctuation values in the tweeta
 #text (args): Takes in a list of string 
-def remove_numbers(text):
-    removed_numbers = list(filter(lambda x: x.isalpha(), text))
-    return removed_numbers
+def remove_punctuations(text):
+    text = text.translate(str.maketrans('', '',string.punctuation))
+    return text
 
 #A function that lemmatizes each word in the text document
 def lemmatize_text(text):
@@ -193,6 +191,14 @@ def lda_topics(text):
 
     return tuple_topics, topics_dict
 
+def hash_id(uniqueid):
+    uniqueid = remove_punctuations(uniqueid)
+    uniqueid = "".join(uniqueid.split())
+    encode_str = uniqueid.encode('utf-8')
+    hash_lda = hashlib.sha224()
+    hash_lda.update(encode_str)
+
+    return hash_lda.hexdigest()
 
 def main():
 
@@ -217,10 +223,16 @@ def main():
     list_city = load_top50_cities(new_path)
     for i in range(len(list_city)):
         #Date will be in the form of args later 
-        obj = {"key": [[2021, 5, 9],list_city[i]]} 
+        obj = {"key": [list_city[i], 2021, 5, 9]}
+        str_date = [str(dt) for dt in obj['key'][1:]]
+        date_classified = ','.join(str_date)
+  
         #Obtaining data from db
         tweets_stream = get_data_db(db_views_stream,obj)
         tweets_search = get_data_db(db_views_search,obj)
+
+        classifier_id = "clf"+str(obj['key'][0])+date_classified
+        classifier_id = hash_id(classifier_id)
 
         #Combine data from search and stream
         tweets_data = pd.concat([tweets_stream,tweets_search],ignore_index=True,sort=False)
@@ -233,8 +245,8 @@ def main():
                      keep = 'first', inplace = True)
             tweet_text= tweets_data['text'].str.replace(r"http\S+","")
             tweet_text = tweet_text.apply(fix_encode)
+            tweet_text = tweet_text.apply(remove_punctuations)
             tweet_text = tweet_text.apply(tokenize_text)
-            tweet_text = tweet_text.apply(remove_numbers)
             tweet_text = tweet_text.apply(lemmatize_text)
 
             #Obtain topic keywords using LDA
@@ -249,12 +261,12 @@ def main():
             business_score = get_score(business, tweet_text, business_max_word)
             
             #Convert to dictionary file 
-            data_record =dict(date =str(obj['key'][0]), location=str(obj['key'][1]),
+            data_record =dict(_id = str(classifier_id),date =date_classified, location=str(obj['key'][0]),
                             lda_result = lda_res[1], score_sports = str(sports_score),
                             score_places = str(places_score), score_politics= str(politics_score),
                             score_education = str(education_score), score_entertainment=str(entertainment_score),
                             score_business=str(business_score))
-            
+     
             try:
                 db_conn.save(data_record)  
                 print('Successfully recorded classifier data')
