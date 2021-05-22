@@ -37,7 +37,7 @@ db_conn = server[DB_NAME]
 
 #Defining the view object
 db_views_stream = "http://admin:admin@45.113.235.136:15984/comp90024_tweet_harvest/_design/topic_modelling/_view/by_date_and_place"
-db_views_search = "http://admin:admin@45.113.235.136:15984/comp90024_tweet_search/_design/topic_modelling/_view/by_date_and_place_v2"
+db_views_search = "http://admin:admin@45.113.235.136:15984/comp90024_tweet_search/_design/topic_modelling/_view/by_date_and_place"
 
 #top 50 cities file path
 GEOJSON_ADDRESS = os.environ.get('GEOJSON_ADDRESS') if os.environ.get('GEOJSON_ADDRESS') != None else "cities_top50_simplified.geojson" 
