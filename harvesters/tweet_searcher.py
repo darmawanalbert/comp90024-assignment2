@@ -5,8 +5,6 @@
 # Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
 # Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
 
-import sys
-sys.path.append('../')
 import couchdb
 import csv
 import tweepy
@@ -17,7 +15,8 @@ import os
 import time
 
 #Defining constants
-CITYFILE = 'city_details.csv'
+MAXIDFILE= os.environ.get('MAXIDFILE') if os.environ.get('MAXIDFILE') != None else 'curr_maxID.txt'
+CITYFILE = os.environ.get('CITYFILE') if os.environ.get('CITYFILE') != None else 'city_details.csv'
 ADDRESS= os.environ.get('ADDRESS') if os.environ.get('ADDRESS') != None else "http://admin:admin@45.113.235.136:15984/"
 DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "comp90024_tweet_search" 
 API_TOKENS = os.environ.get('API_TOKENS') if os.environ.get('API_TOKENS') != None else "twitter-api-tokens.csv" 
@@ -101,7 +100,7 @@ def main():
         for city in capital_cities:
             try:
                 #Load the most current maxID
-                with open('curr_maxID.txt', mode='r', encoding='utf-8-sig') as file:
+                with open(MAXIDFILE, mode='r', encoding='utf-8-sig') as file:
                     for row in file:
                         maxId = row
                 file.close()
@@ -109,7 +108,7 @@ def main():
                 new_maxid = search_tweet(city,maxId)
 
                 #Write the latest maxID into the file
-                file2 = open('curr_maxID.txt', 'w')
+                file2 = open(MAXIDFILE, 'w')
                 file2.write(str(new_maxid))
                 file2.close()
             except: 
