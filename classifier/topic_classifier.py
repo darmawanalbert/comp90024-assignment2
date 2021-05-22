@@ -1,9 +1,10 @@
-#COMP90024 Team 1
-#Albert, Darmawan (1168452) - Jakarta, ID - darmawana@student.unimelb.edu.au
-##Clarisca, Lawrencia (1152594) - Melbourne, AU - clawrencia@student.unimelb.edu.au
-#I Gede Wibawa, Cakramurti (1047538) - Melbourne, AU - icakramurti@student.unimelb.edu.au
-#Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
-#Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
+# COMP90024 Team 1
+# Albert, Darmawan (1168452) - Jakarta, ID - darmawana@student.unimelb.edu.au
+# Clarisca, Lawrencia (1152594) - Melbourne, AU - clawrencia@student.unimelb.edu.au
+# I Gede Wibawa, Cakramurti (1047538) - Melbourne, AU - icakramurti@student.unimelb.edu.au
+# Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
+# Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
+
 
 
 # Installing the necessary packages for Machine Learning Modelling
@@ -23,7 +24,6 @@ from gensim.models.ldamodel import LdaModel
 import os
 import sys
 
-sys.path.append('../')
 
 #Download required nltk  files
 nltk.download('stopwords')
@@ -42,7 +42,7 @@ db_views_stream = "http://admin:admin@45.113.235.136:15984/comp90024_tweet_harve
 db_views_search = "http://admin:admin@45.113.235.136:15984/comp90024_tweet_search/_design/topic_modelling/_view/by_date_and_place_v2"
 
 #top 50 cities file path
-GEOJSON_ADDRESS='../frontend/components/cities_top50_simplified.geojson'
+GEOJSON_ADDRESS = os.environ.get('GEOJSON_ADDRESS') if os.environ.get('GEOJSON_ADDRESS') != None else "cities_top50_simplified.geojson" 
 current_path = os.path.dirname(__file__)
 new_path = os.path.relpath(GEOJSON_ADDRESS,current_path)
 
