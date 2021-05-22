@@ -153,8 +153,10 @@ def fix_encode(text):
     text = text.replace(r'&amp;',r'and')
     text = text.replace(r'&lt;',r'<')
     text = text.replace(r'&gt;',r'>')
+    text = text.encode('ascii','ignore')
+    encoded_text = text.decode()
 
-    return text
+    return encoded_text
 
 #A function to remove punctuation values in the tweeta
 #text (args): Takes in a list of string 
@@ -195,7 +197,7 @@ def hash_id(uniqueid):
     uniqueid = remove_punctuations(uniqueid)
     uniqueid = "".join(uniqueid.split())
     encode_str = uniqueid.encode('utf-8')
-    hash_lda = hashlib.sha224()
+    hash_lda = hashlib.md5()
     hash_lda.update(encode_str)
 
     return hash_lda.hexdigest()
@@ -223,17 +225,17 @@ def main():
     list_city = load_top50_cities(new_path)
     for i in range(len(list_city)):
         #Date will be in the form of args later 
-        obj = {"key": [list_city[i], 2021, 5, 9]}
-        str_date = [str(dt) for dt in obj['key'][1:]]
+        obj = {"key": [[2021, 5, 9], list_city[i]]}
+        str_date = [str(dt) for dt in obj['key'][0]]
         date_classified = ','.join(str_date)
-  
+        
         #Obtaining data from db
         tweets_stream = get_data_db(db_views_stream,obj)
         tweets_search = get_data_db(db_views_search,obj)
 
-        classifier_id = "clf"+str(obj['key'][0])+date_classified
+        classifier_id = "clf"+str(obj['key'][1])+date_classified
         classifier_id = hash_id(classifier_id)
-
+        
         #Combine data from search and stream
         tweets_data = pd.concat([tweets_stream,tweets_search],ignore_index=True,sort=False)
         
@@ -261,7 +263,7 @@ def main():
             business_score = get_score(business, tweet_text, business_max_word)
             
             #Convert to dictionary file 
-            data_record =dict(_id = str(classifier_id),date =date_classified, location=str(obj['key'][0]),
+            data_record =dict(_id = str(classifier_id),date =date_classified, location=str(obj['key'][1]),
                             lda_result = lda_res[1], score_sports = str(sports_score),
                             score_places = str(places_score), score_politics= str(politics_score),
                             score_education = str(education_score), score_entertainment=str(entertainment_score),
