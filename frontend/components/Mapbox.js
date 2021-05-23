@@ -17,7 +17,6 @@ import {
 } from '@chakra-ui/react';
 import mapboxgl from 'mapbox-gl/dist/mapbox-gl';
 import { MAPBOX_PUBLIC_KEY } from '../utils/config';
-import { addDataLayer, initialiseMap } from '../utils/mapboxUtil';
 import { useMapInfo, useLdaScores } from '../utils/fetcher';
 
 import WordCloud from './WordCloud';
@@ -38,7 +37,7 @@ const Mapbox = ({ apiUrl }) => {
     const [lat, setLat] = useState(-37.8130);
     const [zoom, setZoom] = useState(12.5);
     const [Map, setMap] = useState();
-    const data = 'https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson';
+    const [cityName, setCityName] = useState('Melbourne');
 
     const { mapInfo, isMapInfoLoading, isMapInfoError } = useMapInfo(apiUrl);
     const { ldaScores, isLdaScoresLoading, isLdaScoresError } = useLdaScores(apiUrl);
@@ -57,7 +56,18 @@ const Mapbox = ({ apiUrl }) => {
             // ],
         });
 
-        initialiseMap(mapboxgl, map);
+        map.on('click', 'cities', (e) => {
+            setCityName(e.features[0].properties.UCL_NAME_2016);
+        });
+
+        map.on('mouseenter', 'cities', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        map.on('mouseleave', 'cities', () => {
+            map.getCanvas().style.cursor = '';
+        });
+
         map.on('move', () => {
             setLng(map.getCenter().lng.toFixed(4));
             setLat(map.getCenter().lat.toFixed(4));
@@ -67,70 +77,37 @@ const Mapbox = ({ apiUrl }) => {
     }, []);
 
     useEffect(() => {
-        if (isComponentMounted && data) {
+        if (isComponentMounted && mapInfo) {
             Map.on('load', () => {
-                Map.addSource('earthquakes', {
+                Map.addSource('cities', {
                     type: 'geojson',
                     data: mapInfo,
-                    cluster: true,
-                    clusterMaxZoom: 14,
-                    clusterRadius: 50,
                 });
 
                 Map.addLayer({
-                    id: 'clusters',
-                    type: 'circle',
-                    source: 'earthquakes',
-                    filter: ['has', 'point_count'],
+                    id: 'cities',
+                    type: 'fill',
+                    source: 'cities',
+                    layout: {},
                     paint: {
-                        'circle-color': [
-                            'step',
-                            ['get', 'point_count'],
-                            '#51bbd6',
-                            100,
-                            '#f1f075',
-                            750,
-                            '#f28cb1',
-                        ],
-                        'circle-radius': [
-                            'step',
-                            ['get', 'point_count'],
-                            20,
-                            100,
-                            30,
-                            750,
-                            40,
-                        ],
+                        'fill-color': '#0080ff',
+                        'fill-opacity': 0.5,
                     },
                 });
 
                 Map.addLayer({
-                    id: 'cluster-count',
-                    type: 'symbol',
-                    source: 'earthquakes',
-                    filter: ['has', 'point_count'],
-                    layout: {
-                        'text-field': '{point_count_abbreviated}',
-                        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-                        'text-size': 12,
-                    },
-                });
-
-                Map.addLayer({
-                    id: 'unclustered-point',
-                    type: 'circle',
-                    source: 'earthquakes',
-                    filter: ['!', ['has', 'point_count']],
+                    id: 'city-outlines',
+                    type: 'line',
+                    source: 'cities',
+                    layout: {},
                     paint: {
-                        'circle-color': '#11b4da',
-                        'circle-radius': 4,
-                        'circle-stroke-width': 1,
-                        'circle-stroke-color': '#fff',
+                        'line-color': '#000000',
+                        'line-width': 3,
                     },
                 });
             });
         }
-    }, [isComponentMounted, setMap, data, Map]);
+    }, [isComponentMounted, setMap, mapInfo, Map]);
 
     const generateLdaKeywords = (ldaParam, index) => {
         const ldaObject = ldaParam[index].value.lda_keywords;
@@ -144,13 +121,13 @@ const Mapbox = ({ apiUrl }) => {
     const month = today.toLocaleString('default', { month: 'long' });
     const year = today.getFullYear();
 
-    const cityIndex = 0;
+    const [cityIndex, setCityIndex] = useState(0);
 
     return (
         <Flex>
             <div className="map-container" ref={mapContainer} style={mapContainerStyle} />
             <Box w={1 / 3} p={4} borderRight="1px" borderRightColor="gray.200" overflowY="scroll" height="93vh">
-                <Text fontSize="xl" fontWeight="semibold">Info</Text>
+                <Text fontSize="xl" fontWeight="semibold">{`Selected City: ${cityName}`}</Text>
                 <StatGroup p={4} borderWidth="1px" borderRadius="lg" overflow="hidden" justifyContent="center">
                     <Stat>
                         <StatLabel>Longitude</StatLabel>
@@ -169,7 +146,7 @@ const Mapbox = ({ apiUrl }) => {
                 <Text fontSize="xl" fontWeight="semibold">Topic Scores</Text>
                 {isLdaScoresError && <Text>Error loading data</Text>}
                 {isLdaScoresLoading && <Spinner color="teal.400" />}
-                {ldaScores
+                {/* {ldaScores
                     && (
                         <Table variant="simple">
                             <TableCaption>{`Last updated: ${day} ${month} ${year}`}</TableCaption>
@@ -231,13 +208,13 @@ const Mapbox = ({ apiUrl }) => {
                                 </Tr>
                             </Tfoot>
                         </Table>
-                    )}
+                    )} */}
                 <Text fontSize="xl" fontWeight="semibold">Topic Keywords</Text>
                 <Box marginBottom={4}>
                     {isLdaScoresError && <Text>Error loading data</Text>}
                     {isLdaScoresLoading && <Spinner color="teal.400" />}
-                    {ldaScores
-                        && <WordCloud data={generateLdaKeywords(ldaScores, cityIndex)} />}
+                    {/* {ldaScores
+                        && <WordCloud data={generateLdaKeywords(ldaScores, cityIndex)} />} */}
                 </Box>
             </Box>
         </Flex>
