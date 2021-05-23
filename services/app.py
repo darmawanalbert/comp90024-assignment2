@@ -1,9 +1,9 @@
 # COMP90024 Team 1
-# Albert Darmawan (1168452) - darmawana@student.unimelb.edu.au
-# Clarisca Lawrencia (1152594) - clawrencia@student.unimelb.edu.au
-# I Gede Wibawa Cakramurti (1047538) - icakramurti@student.unimelb.edu.au
-# Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
-# Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
+# Albert, Darmawan(1168452) - Jakarta, ID - darmawana@student.unimelb.edu.au
+# Clarisca, Lawrencia(1152594) - Melbourne, AU - clawrencia@student.unimelb.edu.au
+# I Gede Wibawa, Cakramurti(1047538) - Melbourne, AU - icakramurti@student.unimelb.edu.au
+# Nuvi, Anggaresti(830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
+# Wildan Anugrah, Putra(1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
 
 from flask import Flask, jsonify, request, make_response
 import requests
@@ -22,14 +22,16 @@ from datetime import date, datetime, timedelta
 APP = Flask(__name__)
 CORS = CORS(APP, resources={r"/*": {"origins": "*"}})
 
+# Declares database constants
 DB_HOST = os.environ.get('DBHOST') if os.environ.get('DBHOST') != None else "http://admin:admin@45.113.235.190:25984/"
 DB_NAME_LDA = os.environ.get('DB_NAME_LDA') if os.environ.get('DB_NAME_LDA') != None else "comp90024_lda_scoring/"
-DB_NAME_HARVEST = os.environ.get('DB_NAME_HARVEST') if os.environ.get('DB_NAME_HARVEST') != None else "comp90024_tweet_harvest/"
 DESIGN_LDA = "_design/lda_topic/"
-DESIGN_HARVEST = ''
 VIEW_LDA = "_view/score_output"
-VIEW_HARVEST = ''
+# End of database constant declaration
 
+# Start of functions
+# Start of endpoints, three in total
+# Retrieves geojson for top 50 cities
 @APP.route("/cities", methods=["GET"])
 @cross_origin()
 def cities():
@@ -39,6 +41,7 @@ def cities():
 
     return jsonify(data)
 
+# Retrieves daily LDA scores for all cities. Can specify a range of dates.
 @APP.route("/lda-scores", methods=['GET'])
 @cross_origin()
 def lda_scoring():
@@ -46,7 +49,7 @@ def lda_scoring():
     if 'start_date' in request.args:
         start_date = request.args['start_date']
     else:
-        start_date = str(date.today() - timedelta(days=1))
+        start_date = str(date.today() - timedelta(days=1)) # Defaults to yesterday
     
     for i in range(len(start_temp)):
         start_temp[i] = int(start_date.split('-')[i])
@@ -62,7 +65,7 @@ def lda_scoring():
         _endkey = end_temp
     
     if _startkey:
-       obj = {"startkey": [_startkey], "endkey": [_startkey, {}]}
+       obj = {"startkey": [_startkey], "endkey": [_startkey, {}]} # Defaults to one day data
     elif _startkey and _endkey:
        obj = {"startkey": [_startkey], "endkey": [_endkey, {}]}
     else:
@@ -72,6 +75,7 @@ def lda_scoring():
 
     return jsonify(scoring_json["rows"])
 
+# Get monthly analysis for all cities across three metrics: income, age, and unemployment. Can specify a range of months.
 @APP.route('/charts', methods=['GET'])
 @cross_origin()
 def analysis_id():
@@ -79,7 +83,7 @@ def analysis_id():
     if 'start_month' in request.args:
         start_month = request.args['start_month']
     else:
-        start_month = str(date.today().strftime("%Y-%m"))
+        start_month = str(date.today().strftime("%Y-%m")) # Defaults to current month
     
     start_date = start_month + '-' + "1"
     
@@ -93,7 +97,7 @@ def analysis_id():
         if datetime.strptime(end_month, '%Y-%m') < datetime.strptime(start_month, '%Y-%m'):
             return "End month must be after start month."
         last_day = calendar.monthrange(end_month.split('-')[0], end_month.split('-')[1])[1]
-    else:
+    else: # Defaults to one month data
         end_month = start_month
         last_day = calendar.monthrange(int(end_month.split('-')[0]), int(end_month.split('-')[1]))[1]
     
@@ -110,6 +114,7 @@ def analysis_id():
     lda_scores = raw_lda(obj)["rows"]
     lda_aggregate = aggregated_lda(lda_scores)
     
+    # Creates a final json-serialisable collating all three metrics: income, unemployment, and age.
     ID = 'id'
     VALUE = 'value'
     all_analysis = []
@@ -130,7 +135,9 @@ def analysis_id():
     all_analysis.append(age_analysis)
 
     return jsonify(all_analysis)
+# End of endpoints
 
+# Request analytics data from the Database
 def raw_lda(req_params):
     headers = {"content-type": "application/json"}
     url = f"{DB_HOST}{DB_NAME_LDA}{DESIGN_LDA}{VIEW_LDA}"
@@ -142,6 +149,7 @@ def raw_lda(req_params):
 
     return scoring_json
 
+# Performs analysis of topic scores against the demographic metric values obtained from AURIN
 def analysis(topic_scores, ucl):
     X_COOR = 'x'
     Y_COOR = 'y'
@@ -154,16 +162,17 @@ def analysis(topic_scores, ucl):
     topic_dct = {}
 
     for city, dct in topic_scores.items():
-        for topic, v in dct["topics"].items():
-            if topic not in topic_dct:
+        for topic, v in dct["topics"].items(): # iterates over the 6 topics
+            if topic not in topic_dct: # initialises the dictionary
                 topic_dct[topic] = {}
                 topic_dct[topic][X_COOR] = []
                 topic_dct[topic][Y_COOR] = []
                 topic_dct[topic][GRADIENT] = 0
                 topic_dct[topic][Y_INTERCEPT] = 0
-            topic_dct[topic][X_COOR].append(ucl[city])
-            topic_dct[topic][Y_COOR].append(v)
+            topic_dct[topic][X_COOR].append(ucl[city]) # adds the demographic metric value for that city into the x-axis
+            topic_dct[topic][Y_COOR].append(v) # adds the score for that topic into the y-axis
 
+    # Scales x and y axes using a simple MinMax scaler
     for k, val in topic_dct.items():
         min_x = min(val[X_COOR])
         max_x = max(val[X_COOR])
@@ -173,7 +182,8 @@ def analysis(topic_scores, ucl):
         temp_y = [(val - min_y) / (max_y - min_y) for val in val[Y_COOR]]
         val[X_COOR] = temp_x
         val[Y_COOR] = temp_y
-
+    
+    # Performs linear regression and get r_squared, p_value, and standard error
     for topic, val in topic_dct.items():
         x_np = np.array(val[X_COOR])
         y_np = np.array(val[Y_COOR])
@@ -211,6 +221,7 @@ def aggregated_lda(lda_scores):
 
     return lda_dct
 
+# Converts between UCL_NAME_2016 and UCL_CODE_2016
 def ucl_name_to_code():
     path = "./data/cities_top50_simplified.geojson"
     with open(path) as f:
@@ -224,6 +235,8 @@ def ucl_name_to_code():
 
     return name_dct
 
+# The next three functions are aggregating functions. Can't be compiled into one since they require different dictionary keys
+# Gets the average median income based on aggregated SA2 areas
 def median_income():
     sa2_aggregate = "./data/sa2_aggregate.json"
     path = "./data/SA2-G02_Selected_Medians_and_Averages-Census_2016.json"
@@ -255,13 +268,16 @@ def median_income():
     UCL_CODE_2016 = 'UCL_CODE_2016'
     temp_dict = {}
     for k,v in temp_income.items():
+        # In case this data needs to be sent to frontend, for now no need.
         temp_dict = {}
         temp_dict[UCL_CODE_2016] = k
         temp_dict[AVG_MED_WEEKLY_INC] = temp_income[k][TOT_MED_WEEKLY_INC] / len(aggregate[k])
+        # End of block
         ucl_income[k] = temp_dict[AVG_MED_WEEKLY_INC]
 
     return ucl_income
 
+# Gets the aggregated employment rates for all cities based on SA2s that are included within its borders.
 def unemployment():
     sa2_aggregate = "./data/sa2_aggregate.json"
     path = "./data/SA2-G40_Selected_Labour_Force__Education_and_Migration_Characteristics_by_Sex-Census_2016.json"
@@ -295,14 +311,17 @@ def unemployment():
     
     UCL_CODE_2016 = 'UCL_CODE_2016'
     for k,v in temp_unemployment.items():
+        # In case this data needs to be sent to frontend, for now no need.
         temp_dict = {}
         temp_dict[UCL_CODE_2016] = k
         temp_dict[PERCENTAGE_UNEMPLOYED] = temp_unemployment[k][TOTAL_UNEMPLOYMENT] / temp_unemployment[k][TOT_LABOUR_FORCE]
         temp_dict[TOT_LABOUR_FORCE] = temp_unemployment[k][TOT_LABOUR_FORCE]
+        # End of block
         ucl_unemployment[k] = temp_dict[PERCENTAGE_UNEMPLOYED]
 
     return ucl_unemployment
 
+# Gets the proportion of persons aged 25-34 years old for all cities, using aggregated SA2 data.
 def age():
     sa2_aggregate = "./data/sa2_aggregate.json"
     path = "./data/SA2-G01_Selected_Person_Characteristics_by_Sex-Census_2016.json"
@@ -335,21 +354,24 @@ def age():
     
     UCL_CODE_2016 = 'UCL_CODE_2016'
     for k,v in temp_age.items():
+        # In case this data needs to be sent to frontend, for now no need.
         temp_dict = {}
         temp_dict[UCL_CODE_2016] = k
         temp_dict[PROP_AGE_25_34] = temp_age[k][AGE_25_34_COUNT] / temp_age[k][POP_COUNT]
         temp_dict[POP_COUNT] = temp_age[k][POP_COUNT]
+        # End of block
         ucl_age[k] = temp_dict[PROP_AGE_25_34]
 
     return ucl_age
 
+# Homepage
 @APP.route("/")
 @cross_origin()
 def home():
-    test_db_connection = raw_lda({"startkey": [2021, 5, 9], "endkey": [{}, 2021, 5, 9]})
 
-    return jsonify(test_db_connection)
-    
+    return "Hello. This is the service homepage."
+# End of functions
+
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(
         description="Group 1 COMP90024")
