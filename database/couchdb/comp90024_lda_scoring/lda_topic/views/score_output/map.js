@@ -1,7 +1,5 @@
 function (doc) {
-  var d = doc.date // String format such as "[2021, 5, 9]"
-  d = d.replace("[", "");
-  d = d.replace("]", "");
+  var d = doc.date // String format such as "2021,5,9"
   d = d.split(",");
   for (i=0; i<d.length; i++) {
     d_i = d[i].trim();
