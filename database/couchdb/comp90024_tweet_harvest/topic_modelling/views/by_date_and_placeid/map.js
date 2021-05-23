@@ -6,8 +6,8 @@ function (doc) {
     var month = d.getMonth() + 1;
     var year = d.getFullYear();
     if (doc.truncated === true)
-      emit([[year, month, date], doc.AURIN_id], {id: doc._id, text: doc.extended_tweet.full_text, aurin_loc: doc.AURIN_loc_name, coordinates: doc.coordinates});
+      emit([[year, month, date], doc.AURIN_id], {id: doc._id, text: doc.extended_tweet.full_text, aurin_loc: doc.AURIN_loc_name.toLowerCase(), coordinates: doc.coordinates});
     else
-      emit([[year, month, date], doc.AURIN_id], {id: doc._id, text: doc.text, aurin_loc: doc.AURIN_loc_name, coordinates: doc.coordinates});
+      emit([[year, month, date], doc.AURIN_id], {id: doc._id, text: doc.text, aurin_loc: doc.AURIN_loc_name.toLowerCase(), coordinates: doc.coordinates});
   }
 }
