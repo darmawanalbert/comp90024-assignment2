@@ -21,13 +21,13 @@ from gensim.corpora import Dictionary
 from gensim.models.ldamodel import LdaModel
 import os
 import hashlib
+from datetime import datetime, timedelta
 
 
 #Download required nltk  files
 nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('wordnet')
-
 
 #Creating DB Connection
 DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "comp90024_lda_scoring" 
@@ -51,6 +51,11 @@ PLACES_FILE ='places.txt'
 ENTERTAINMENT_FILE = 'entertainment.txt'
 EDUCATION_FILE= 'education.txt'
 BUSINESS_FILE = 'business.txt'
+
+#Get yesterday's date to obtain data from view
+date_yesterday=datetime.today() - timedelta(1)
+date_yesterday= datetime.strftime(date_yesterday,'%Y,%m,%d')
+date_list = list(map(int, date_yesterday.split(',')))
 
 #A function to load the top 50 cities' names
 def load_top50_cities(file_name):
@@ -224,16 +229,15 @@ def main():
     #Iterate through the list to obtain views for each 50 cities
     list_city = load_top50_cities(new_path)
     for i in range(len(list_city)):
-        #Date will be in the form of args later 
-        obj = {"key": [[2021, 5, 9], list_city[i]]}
-        str_date = [str(dt) for dt in obj['key'][0]]
-        date_classified = ','.join(str_date)
-        
+
+        #Using yesterday's date to query harvested data 
+        obj = {"key": [date_list, list_city[i]]}
+    
         #Obtaining data from db
         tweets_stream = get_data_db(db_views_stream,obj)
         tweets_search = get_data_db(db_views_search,obj)
 
-        classifier_id = "clf"+str(obj['key'][1])+date_classified
+        classifier_id = "clf"+str(obj['key'][1])+date_yesterday
         classifier_id = hash_id(classifier_id)
         
         #Combine data from search and stream
@@ -242,7 +246,6 @@ def main():
         
         if not tweets_data.empty:      
             #Pre-processing of tweet file
-
             #Drop duplicated tweet id
             tweets_data.drop_duplicates(subset ="id",
                      keep = 'first', inplace = True)
@@ -264,15 +267,13 @@ def main():
             business_score = get_score(business, tweet_text, business_max_word)
             
             #Convert to dictionary file 
-            data_record =dict(_id = str(classifier_id),date =date_classified, location=str(obj['key'][1]),
+            data_record =dict(_id = str(classifier_id),date =date_yesterday, location=str(obj['key'][1]),
                             total_tweets = str(tweets_count),
                             lda_result = lda_res[1], score_sports = str(sports_score),
                             score_places = str(places_score), score_politics= str(politics_score),
                             score_education = str(education_score), score_entertainment=str(entertainment_score),
                             score_business=str(business_score))
-     
-            try:
-               
+            try:  
                 db_conn.save(data_record)  
                 print('Successfully recorded classifier data')
             except Exception as e:
