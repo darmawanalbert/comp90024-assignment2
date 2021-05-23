@@ -9,27 +9,18 @@ Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu
 
 import React from 'react';
 import Head from 'next/head';
-import { Heading, Container, Center } from '@chakra-ui/react';
-import { Line } from 'react-chartjs-2';
+import {
+    Heading, Container, Center, Text, Spinner,
+} from '@chakra-ui/react';
+import { Scatter } from 'react-chartjs-2';
 
 import { Navbar } from '../components/index';
-import { useMapInfo } from '../utils/fetcher';
+import { useChartInfo } from '../utils/fetcher';
 
 export default function Analysis({ apiUrl }) {
-    const data = {
-        labels: ['1', '2', '3', '4', '5', '6'],
-        datasets: [
-            {
-                label: '# of Votes',
-                data: [12, 19, 3, 5, 2, 3],
-                fill: false,
-                backgroundColor: 'rgb(255, 99, 132)',
-                borderColor: 'rgba(255, 99, 132, 0.2)',
-            },
-        ],
-    };
+    const { chartInfo, isChartInfoLoading, isChartInfoError } = useChartInfo(apiUrl);
 
-    const options = {
+    const chartOptions = {
         scales: {
             yAxes: [
                 {
@@ -41,8 +32,70 @@ export default function Analysis({ apiUrl }) {
         },
     };
 
-    const { mapInfo, isMapInfoLoading, isMapInfoError } = useMapInfo(apiUrl);
-    alert(JSON.stringify(mapInfo));
+    const generateData = (info, typeIndex) => (
+        {
+            datasets: [
+                {
+                    type: 'scatter',
+                    label: 'Business',
+                    data: info[typeIndex].value.business.x.map(
+                        (xValue, i) => ({ x: xValue, y: info[typeIndex].value.business.y[i] }),
+                    ),
+                    backgroundColor: '#E53E3E',
+                    hidden: false,
+                },
+                {
+                    type: 'scatter',
+                    label: 'Education',
+                    data: info[typeIndex].value.education.x.map(
+                        (xValue, i) => ({ x: xValue, y: info[typeIndex].value.education.y[i] }),
+                    ),
+                    backgroundColor: '#DD6B20',
+                    hidden: true,
+                },
+                {
+                    type: 'scatter',
+                    label: 'Entertainment',
+                    data: info[typeIndex].value.entertainment.x.map(
+                        (xValue, i) => ({ x: xValue, y: info[typeIndex].value.entertainment.y[i] }),
+                    ),
+                    backgroundColor: '#38A169',
+                    hidden: true,
+                },
+                {
+                    type: 'scatter',
+                    label: 'Places',
+                    data: info[typeIndex].value.places.x.map(
+                        (xValue, i) => ({ x: xValue, y: info[typeIndex].value.places.y[i] }),
+                    ),
+                    backgroundColor: '#3182CE',
+                    hidden: true,
+                },
+                {
+                    type: 'scatter',
+                    label: 'Politics',
+                    data: info[typeIndex].value.politics.x.map(
+                        (xValue, i) => ({ x: xValue, y: info[typeIndex].value.politics.y[i] }),
+                    ),
+                    backgroundColor: '#805AD5',
+                    hidden: true,
+                },
+                {
+                    type: 'scatter',
+                    label: 'Sport',
+                    data: info[typeIndex].value.sport.x.map(
+                        (xValue, i) => ({ x: xValue, y: info[typeIndex].value.sport.y[i] }),
+                    ),
+                    backgroundColor: '#D53F8C',
+                    hidden: true,
+                },
+            ],
+        }
+    );
+
+    const today = new Date();
+    const month = today.toLocaleString('default', { month: 'long' });
+    const year = today.getFullYear();
 
     return (
         <div>
@@ -52,11 +105,40 @@ export default function Analysis({ apiUrl }) {
             </Head>
             <main>
                 <Navbar />
-                <Container maxW="3xl">
-                    <Center margin={8}>
+                <Container maxW="3xl" paddingBottom={8}>
+                    <Center margin={8} marginBottom={0}>
                         <Heading>Analysis with AURIN</Heading>
                     </Center>
-                    <Line data={data} options={options} />
+                    <Center>
+                        <Text color="gray.500">{`Last updated: ${month} ${year}`}</Text>
+                    </Center>
+                    <Center margin={8}>
+                        <Text fontSize="xl" fontWeight="semibold">#1: Correlation between Median Income and Topic Scores</Text>
+                    </Center>
+                    <Center>
+                        {isChartInfoError && <Text>Error loading data</Text>}
+                        {isChartInfoLoading && <Spinner color="teal.400" />}
+                        {chartInfo
+                            && <Scatter data={generateData(chartInfo, 0)} options={chartOptions} />}
+                    </Center>
+                    <Center margin={8}>
+                        <Text fontSize="xl" fontWeight="semibold">#2: Correlation between Unemployment Rate and Topic Scores</Text>
+                    </Center>
+                    <Center>
+                        {isChartInfoError && <Text>Error loading data</Text>}
+                        {isChartInfoLoading && <Spinner color="teal.400" />}
+                        {chartInfo
+                            && <Scatter data={generateData(chartInfo, 1)} options={chartOptions} />}
+                    </Center>
+                    <Center margin={8}>
+                        <Text fontSize="xl" fontWeight="semibold">#3: Correlation between Population Percentage Age 25-34 and Topic Scores</Text>
+                    </Center>
+                    <Center>
+                        {isChartInfoError && <Text>Error loading data</Text>}
+                        {isChartInfoLoading && <Spinner color="teal.400" />}
+                        {chartInfo
+                            && <Scatter data={generateData(chartInfo, 2)} options={chartOptions} />}
+                    </Center>
                 </Container>
             </main>
         </div>
