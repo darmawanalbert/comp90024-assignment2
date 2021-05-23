@@ -35,7 +35,7 @@ const Mapbox = ({ apiUrl }) => {
     const mapContainer = useRef();
     const [lng, setLng] = useState(144.9637);
     const [lat, setLat] = useState(-37.8130);
-    const [zoom, setZoom] = useState(12.5);
+    const [zoom, setZoom] = useState(7.60);
     const [Map, setMap] = useState();
     const [cityName, setCityName] = useState('Melbourne');
 
@@ -50,10 +50,10 @@ const Mapbox = ({ apiUrl }) => {
             center: [lng, lat],
             zoom,
             pitch: 45,
-            // maxBounds: [
-            //     [-77.875588, 38.50705], // Southwest coordinates
-            //     [-76.15381, 39.548764], // Northeast coordinates
-            // ],
+            maxBounds: [
+                [96.8168, -43.7405], // Southwest coordinates
+                [159.1092, -9.1422], // Northeast coordinates
+            ],
         });
 
         map.on('click', 'cities', (e) => {
@@ -116,6 +116,10 @@ const Mapbox = ({ apiUrl }) => {
         );
     };
 
+    const getTopicScore = (ldaParam, topicLabel) => (
+        ldaParam[cityIndex].value.topic_score[topicLabel]
+    );
+
     const today = new Date();
     const day = today.getDate();
     const month = today.toLocaleString('default', { month: 'long' });
@@ -162,42 +166,42 @@ const Mapbox = ({ apiUrl }) => {
                                     <Td>1</Td>
                                     <Td>Business</Td>
                                     <Td isNumeric>
-                                        {ldaScores[cityIndex].value.topic_score.business}
+                                        {getTopicScore(ldaScore, 'business')}
                                     </Td>
                                 </Tr>
                                 <Tr>
                                     <Td>2</Td>
                                     <Td>Education</Td>
                                     <Td isNumeric>
-                                        {ldaScores[cityIndex].value.topic_score.education}
+                                        {getTopicScore(ldaScore, 'education')}
                                     </Td>
                                 </Tr>
                                 <Tr>
                                     <Td>3</Td>
                                     <Td>Entertainment</Td>
                                     <Td isNumeric>
-                                        {ldaScores[cityIndex].value.topic_score.entertainment}
+                                        {getTopicScore(ldaScore, 'entertainment')}
                                     </Td>
                                 </Tr>
                                 <Tr>
                                     <Td>4</Td>
                                     <Td>Places</Td>
                                     <Td isNumeric>
-                                        {ldaScores[cityIndex].value.topic_score.places}
+                                        {getTopicScore(ldaScore, 'places')}
                                     </Td>
                                 </Tr>
                                 <Tr>
                                     <Td>5</Td>
                                     <Td>Politics</Td>
                                     <Td isNumeric>
-                                        {ldaScores[cityIndex].value.topic_score.politics}
+                                        {getTopicScore(ldaScore, 'politics')}
                                     </Td>
                                 </Tr>
                                 <Tr>
                                     <Td>6</Td>
                                     <Td>Sport</Td>
                                     <Td isNumeric>
-                                        {ldaScores[cityIndex].value.topic_score.sport}
+                                        {getTopicScore(ldaScore, 'sport')}
                                     </Td>
                                 </Tr>
                             </Tbody>
