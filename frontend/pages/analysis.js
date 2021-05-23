@@ -32,8 +32,11 @@ export default function Analysis({ apiUrl }) {
         },
     };
 
+    const xScales = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+
     const generateData = (info, typeIndex) => (
         {
+            labels: xScales,
             datasets: [
                 {
                     type: 'scatter',
@@ -42,6 +45,19 @@ export default function Analysis({ apiUrl }) {
                         (xValue, i) => ({ x: xValue, y: info[typeIndex].value.business.y[i] }),
                     ),
                     backgroundColor: '#E53E3E',
+                    hidden: false,
+                },
+                {
+                    type: 'line',
+                    label: 'Business Regression',
+                    data: xScales.map(
+                        (xValue, i) => (
+                            info[typeIndex].value.business.m * xValue
+                                + info[typeIndex].value.business.c),
+                    ),
+                    pointRadius: 0,
+                    borderColor: '#E53E3E',
+                    borderWidth: 2,
                     hidden: false,
                 },
                 {
@@ -54,12 +70,38 @@ export default function Analysis({ apiUrl }) {
                     hidden: true,
                 },
                 {
+                    type: 'line',
+                    label: 'Education Regression',
+                    data: xScales.map(
+                        (xValue, i) => (
+                            info[typeIndex].value.education.m * xValue
+                                + info[typeIndex].value.education.c),
+                    ),
+                    pointRadius: 0,
+                    borderColor: '#DD6B20',
+                    borderWidth: 2,
+                    hidden: true,
+                },
+                {
                     type: 'scatter',
                     label: 'Entertainment',
                     data: info[typeIndex].value.entertainment.x.map(
                         (xValue, i) => ({ x: xValue, y: info[typeIndex].value.entertainment.y[i] }),
                     ),
                     backgroundColor: '#38A169',
+                    hidden: true,
+                },
+                {
+                    type: 'line',
+                    label: 'Entertainment Regression',
+                    data: xScales.map(
+                        (xValue, i) => (
+                            info[typeIndex].value.entertainment.m * xValue
+                                + info[typeIndex].value.entertainment.c),
+                    ),
+                    pointRadius: 0,
+                    borderColor: '#38A169',
+                    borderWidth: 2,
                     hidden: true,
                 },
                 {
@@ -72,6 +114,19 @@ export default function Analysis({ apiUrl }) {
                     hidden: true,
                 },
                 {
+                    type: 'line',
+                    label: 'Places Regression',
+                    data: xScales.map(
+                        (xValue, i) => (
+                            info[typeIndex].value.places.m * xValue
+                                + info[typeIndex].value.places.c),
+                    ),
+                    pointRadius: 0,
+                    borderColor: '#3182CE',
+                    borderWidth: 2,
+                    hidden: true,
+                },
+                {
                     type: 'scatter',
                     label: 'Politics',
                     data: info[typeIndex].value.politics.x.map(
@@ -81,12 +136,38 @@ export default function Analysis({ apiUrl }) {
                     hidden: true,
                 },
                 {
+                    type: 'line',
+                    label: 'Politics Regression',
+                    data: xScales.map(
+                        (xValue, i) => (
+                            info[typeIndex].value.politics.m * xValue
+                                + info[typeIndex].value.politics.c),
+                    ),
+                    pointRadius: 0,
+                    borderColor: '#805AD5',
+                    borderWidth: 2,
+                    hidden: true,
+                },
+                {
                     type: 'scatter',
                     label: 'Sport',
                     data: info[typeIndex].value.sport.x.map(
                         (xValue, i) => ({ x: xValue, y: info[typeIndex].value.sport.y[i] }),
                     ),
                     backgroundColor: '#D53F8C',
+                    hidden: true,
+                },
+                {
+                    type: 'line',
+                    label: 'Sport Regression',
+                    data: xScales.map(
+                        (xValue, i) => (
+                            info[typeIndex].value.sport.m * xValue
+                                + info[typeIndex].value.sport.c),
+                    ),
+                    pointRadius: 0,
+                    borderColor: '#D53F8C',
+                    borderWidth: 2,
                     hidden: true,
                 },
             ],
