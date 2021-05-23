@@ -6,7 +6,7 @@ function (doc) {
     d_i = parseInt(d_i);
     d[i] = d_i;
   }
-  emit([d, doc.location], {lda_keywords: doc.lda_result, topic_score: {sport: doc.score_sports,
-      places: doc.score_places, politics: doc.score_politics, education: doc.score_education,
-      entertainment: doc.score_entertainment, business: doc.score_business}});
+  emit([d, doc.location], {tweets_count: doc.total_tweets, lda_keywords: doc.lda_result,
+      topic_score: {sport: doc.score_sports, places: doc.score_places, politics: doc.score_politics,
+      education: doc.score_education, entertainment: doc.score_entertainment, business: doc.score_business}});
   }
