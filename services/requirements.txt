@@ -11,3 +11,4 @@ argparse==1.4.0
 uuid==1.30
 datetime
 scipy
+numpy
