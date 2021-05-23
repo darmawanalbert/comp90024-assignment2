@@ -238,6 +238,7 @@ def main():
         
         #Combine data from search and stream
         tweets_data = pd.concat([tweets_stream,tweets_search],ignore_index=True,sort=False)
+        tweets_count = len(tweets_data.index)
         
         if not tweets_data.empty:      
             #Pre-processing of tweet file
@@ -264,12 +265,14 @@ def main():
             
             #Convert to dictionary file 
             data_record =dict(_id = str(classifier_id),date =date_classified, location=str(obj['key'][1]),
+                            total_tweets = str(tweets_count),
                             lda_result = lda_res[1], score_sports = str(sports_score),
                             score_places = str(places_score), score_politics= str(politics_score),
                             score_education = str(education_score), score_entertainment=str(entertainment_score),
                             score_business=str(business_score))
      
             try:
+               
                 db_conn.save(data_record)  
                 print('Successfully recorded classifier data')
             except Exception as e:
