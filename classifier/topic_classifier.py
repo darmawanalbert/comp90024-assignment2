@@ -5,7 +5,6 @@
 # Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
 # Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
 
-
 # Installing the necessary packages for Machine Learning Modelling
 import couchdb
 import requests
@@ -21,12 +20,14 @@ from nltk.stem import WordNetLemmatizer
 from gensim.corpora import Dictionary
 from gensim.models.ldamodel import LdaModel
 import os
+import hashlib
+from datetime import datetime, timedelta
+
 
 #Download required nltk  files
 nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('wordnet')
-
 
 #Creating DB Connection
 DB_NAME = os.environ.get('DB_NAME') if os.environ.get('DB_NAME') != None else "comp90024_lda_scoring" 
@@ -35,8 +36,13 @@ server = couchdb.Server(ADDRESS)
 db_conn = server[DB_NAME]
 
 #Defining the view object
-db_views = "http://admin:admin@45.113.235.136:15984/comp90024_tweet_harvest/_design/topic_modelling/_view/by_date_and_place"
-obj = {"key": [[2021, 5, 9],'Melbourne']} #Key will be defined from services (date and location)
+db_views_stream = "http://admin:admin@45.113.235.136:15984/comp90024_tweet_harvest/_design/topic_modelling/_view/by_date_and_place"
+db_views_search = "http://admin:admin@45.113.235.136:15984/comp90024_tweet_search/_design/topic_modelling/_view/by_date_and_place"
+
+#top 50 cities file path
+GEOJSON_ADDRESS = os.environ.get('GEOJSON_ADDRESS') if os.environ.get('GEOJSON_ADDRESS') != None else "cities_top50_simplified.geojson" 
+current_path = os.path.dirname(__file__)
+new_path = os.path.relpath(GEOJSON_ADDRESS,current_path)
 
 #Defining the file path of the subject corpus
 POLITICS_FILE='politics.txt'
@@ -46,22 +52,43 @@ ENTERTAINMENT_FILE = 'entertainment.txt'
 EDUCATION_FILE= 'education.txt'
 BUSINESS_FILE = 'business.txt'
 
+#Get yesterday's date to obtain data from view
+date_yesterday=datetime.today() - timedelta(1)
+date_yesterday= datetime.strftime(date_yesterday,'%Y,%m,%d')
+date_list = list(map(int, date_yesterday.split(',')))
+
+#A function to load the top 50 cities' names
+def load_top50_cities(file_name):
+    try:
+        city_names = []
+        with open(file_name,'r') as f:
+            geo_location = json.load(f)
+        for i in range(len(geo_location['features'])):
+            city_name = geo_location['features'][i]['properties']['UCL_NAME_2016']
+            city_names.append(city_name.lower())
+    except Exception as e:
+            print(e)
+    return city_names
+
 # A function to load the subject corpus
 def load_txt(file_name):
     list_word=[]
-    with open(file_name) as phrases:
-        for word in phrases:
-            word = word.lower()
-            word = re.sub(r'[^\w\s]','',word)
-            word = word.strip()
-            word = word.split()
-            i=0
-            temp_word=''
-            while i < len(word):
-                temp_word = temp_word+" "+word[i]
-                temp_word = temp_word.lstrip()
-                i+=1
-            list_word.append(temp_word)
+    try:
+        with open(file_name) as phrases:
+            for word in phrases:
+                word = word.lower()
+                word = re.sub(r'[^\w\s]','',word)
+                word = word.strip()
+                word = word.split()
+                i=0
+                temp_word=''
+                while i < len(word):
+                    temp_word = temp_word+" "+word[i]
+                    temp_word = temp_word.lstrip()
+                    i+=1
+                list_word.append(temp_word)
+    except Exception as e:
+        print(e)
     return list_word
 
 # A function to extract the lenght of the longest word in the corpus
@@ -131,14 +158,16 @@ def fix_encode(text):
     text = text.replace(r'&amp;',r'and')
     text = text.replace(r'&lt;',r'<')
     text = text.replace(r'&gt;',r'>')
+    text = text.encode('ascii','ignore')
+    encoded_text = text.decode()
 
-    return text
+    return encoded_text
 
-#A function to remove numeric values in the tweeta
+#A function to remove punctuation values in the tweeta
 #text (args): Takes in a list of string 
-def remove_numbers(text):
-    removed_numbers = list(filter(lambda x: x.isalpha(), text))
-    return removed_numbers
+def remove_punctuations(text):
+    text = text.translate(str.maketrans('', '',string.punctuation))
+    return text
 
 #A function that lemmatizes each word in the text document
 def lemmatize_text(text):
@@ -169,12 +198,20 @@ def lda_topics(text):
 
     return tuple_topics, topics_dict
 
+def hash_id(uniqueid):
+    uniqueid = remove_punctuations(uniqueid)
+    uniqueid = "".join(uniqueid.split())
+    encode_str = uniqueid.encode('utf-8')
+    hash_lda = hashlib.md5()
+    hash_lda.update(encode_str)
+
+    return hash_lda.hexdigest()
 
 def main():
 
     #Load Corpus
     education = load_txt(EDUCATION_FILE)
-    entertaintment = load_txt(ENTERTAINMENT_FILE)
+    entertainment = load_txt(ENTERTAINMENT_FILE)
     places = load_txt(PLACES_FILE)
     sports = load_txt(SPORTS_FILE)
     politics = load_txt(POLITICS_FILE)
@@ -188,37 +225,57 @@ def main():
     places_max_word  = longest_word(PLACES_FILE)
     entertainment_max_word  = longest_word(ENTERTAINMENT_FILE)
 
-    #Obtaining data from db
-    tweets_data = get_data_db(db_views,obj)
+    #Load the top 50 cities name 
+    #Iterate through the list to obtain views for each 50 cities
+    list_city = load_top50_cities(new_path)
+    for i in range(len(list_city)):
 
-    #Pre-processing of tweet file
-    tweet_text= tweets_data['text'].str.replace(r"http\S+","")
-    tweet_text = tweet_text.apply(fix_encode)
-    tweet_text = tweet_text.apply(tokenize_text)
-    tweet_text = tweet_text.apply(remove_numbers)
-    tweet_text = tweet_text.apply(lemmatize_text)
-
-    #Obtain topic keywords using LDA
-    lda_res = lda_topics(tweet_text)
-
-    #Obtain the score for each subject category
-    sports_score = get_score(sports,tweet_text,sports_max_word)
-    places_score = get_score(places,tweet_text, places_max_word)
-    politics_score = get_score(politics,tweet_text, politics_max_word)
-    education_score = get_score(education,tweet_text, education_max_word)
-    entertaintment_score = get_score(entertaintment,tweet_text, entertainment_max_word)
-    business_score = get_score(business, tweet_text, business_max_word)
+        #Using yesterday's date to query harvested data 
+        obj = {"key": [date_list, list_city[i]]}
     
-    #Convert to dictionary file 
-    data_record =dict(date =str(obj['key'][0]), location=str(obj['key'][1]),
-                    lda_result = lda_res[1], score_sports = str(sports_score),
-                    score_places = str(places_score), score_politics= str(politics_score),
-                    score_education = str(education_score), score_entertaintment=str(entertaintment_score),
-                    score_business=str(business_score))
+        #Obtaining data from db
+        tweets_stream = get_data_db(db_views_stream,obj)
+        tweets_search = get_data_db(db_views_search,obj)
 
-    try:
-        db_conn.save(data_record)  
-        print('Successfully recorded classifier data')
-    except Exception as e:
-        print(e)
+        classifier_id = "clf"+str(obj['key'][1])+date_yesterday
+        classifier_id = hash_id(classifier_id)
+        
+        #Combine data from search and stream
+        tweets_data = pd.concat([tweets_stream,tweets_search],ignore_index=True,sort=False)
+        tweets_count = len(tweets_data.index)
+        
+        if not tweets_data.empty:      
+            #Pre-processing of tweet file
+            #Drop duplicated tweet id
+            tweets_data.drop_duplicates(subset ="id",
+                     keep = 'first', inplace = True)
+            tweet_text= tweets_data['text'].str.replace(r"http\S+","")
+            tweet_text = tweet_text.apply(fix_encode)
+            tweet_text = tweet_text.apply(remove_punctuations)
+            tweet_text = tweet_text.apply(tokenize_text)
+            tweet_text = tweet_text.apply(lemmatize_text)
+
+            #Obtain topic keywords using LDA
+            lda_res = lda_topics(tweet_text)
+
+            #Obtain the score for each subject category
+            sports_score = get_score(sports,tweet_text,sports_max_word)
+            places_score = get_score(places,tweet_text, places_max_word)
+            politics_score = get_score(politics,tweet_text, politics_max_word)
+            education_score = get_score(education,tweet_text, education_max_word)
+            entertainment_score = get_score(entertainment,tweet_text, entertainment_max_word)
+            business_score = get_score(business, tweet_text, business_max_word)
+            
+            #Convert to dictionary file 
+            data_record =dict(_id = str(classifier_id),date =date_yesterday, location=str(obj['key'][1]),
+                            total_tweets = str(tweets_count),
+                            lda_result = lda_res[1], score_sports = str(sports_score),
+                            score_places = str(places_score), score_politics= str(politics_score),
+                            score_education = str(education_score), score_entertainment=str(entertainment_score),
+                            score_business=str(business_score))
+            try:  
+                db_conn.save(data_record)  
+                print('Successfully recorded classifier data')
+            except Exception as e:
+                print(e)
 main() 
