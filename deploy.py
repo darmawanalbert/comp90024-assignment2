@@ -218,7 +218,7 @@ def create_harvester_docker_compose(instance4):
     fout.close()
 
 def create_docker_compose(instance1, instance4):
-    fin = open("harvesters/docker-compose.yml", "rt")
+    fin = open("templates/docker-compose.yml.template", "rt")
     template = fin.read()
     template = template.replace('${INSTANCE1}', instance1)
     template = template.replace('${INSTANCE4}', instance4)
