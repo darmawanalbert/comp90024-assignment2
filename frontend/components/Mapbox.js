@@ -37,7 +37,7 @@ const Mapbox = ({ apiUrl }) => {
     const [lat, setLat] = useState(-37.8130);
     const [zoom, setZoom] = useState(7.60);
     const [Map, setMap] = useState();
-    const [cityName, setCityName] = useState('Melbourne');
+    const [cityName, setCityName] = useState('melbourne');
 
     const { mapInfo, isMapInfoLoading, isMapInfoError } = useMapInfo(apiUrl);
     const { ldaScores, isLdaScoresLoading, isLdaScoresError } = useLdaScores(apiUrl);
@@ -57,7 +57,7 @@ const Mapbox = ({ apiUrl }) => {
         });
 
         map.on('click', 'cities', (e) => {
-            setCityName(e.features[0].properties.UCL_NAME_2016);
+            setCityName(e.features[0].properties.UCL_NAME_2016.toLowerCase());
         });
 
         map.on('mouseenter', 'cities', () => {
@@ -109,23 +109,35 @@ const Mapbox = ({ apiUrl }) => {
         }
     }, [isComponentMounted, setMap, mapInfo, Map]);
 
-    const generateLdaKeywords = (ldaParam, index) => {
-        const ldaObject = ldaParam[index].value.lda_keywords;
-        return Object.keys(ldaObject).map(
-            (keyword, i) => ({ text: keyword, value: ldaObject[keyword] }),
-        );
+    const generateLdaKeywords = (ldaParam) => {
+        if (Array.isArray(ldaParam) && ldaParam.length > 0) {
+            const cityObject = ldaParam.find((obj) => obj.key[1] === cityName);
+            if (typeof cityObject === 'object') {
+                const ldaObject = cityObject.value.lda_keywords;
+                return Object.keys(ldaObject).map(
+                    (keyword, i) => ({ text: keyword, value: ldaObject[keyword] }),
+                );
+            }
+            return [];
+        }
+        return [];
     };
 
-    const getTopicScore = (ldaParam, topicLabel) => (
-        ldaParam[cityIndex].value.topic_score[topicLabel]
-    );
+    const getTopicScore = (ldaParam, topicLabel) => {
+        if (Array.isArray(ldaParam) && ldaParam.length > 0) {
+            const cityObject = ldaParam.find((obj) => obj.key[1] === cityName);
+            if (typeof cityObject === 'object') {
+                return cityObject.value.topic_score[topicLabel];
+            }
+            return 0;
+        }
+        return 0;
+    };
 
     const today = new Date();
     const day = today.getDate();
     const month = today.toLocaleString('default', { month: 'long' });
     const year = today.getFullYear();
-
-    const [cityIndex, setCityIndex] = useState(0);
 
     return (
         <Flex>
@@ -150,7 +162,7 @@ const Mapbox = ({ apiUrl }) => {
                 <Text fontSize="xl" fontWeight="semibold">Topic Scores</Text>
                 {isLdaScoresError && <Text>Error loading data</Text>}
                 {isLdaScoresLoading && <Spinner color="teal.400" />}
-                {/* {ldaScores
+                {ldaScores
                     && (
                         <Table variant="simple">
                             <TableCaption>{`Last updated: ${day} ${month} ${year}`}</TableCaption>
@@ -166,59 +178,53 @@ const Mapbox = ({ apiUrl }) => {
                                     <Td>1</Td>
                                     <Td>Business</Td>
                                     <Td isNumeric>
-                                        {getTopicScore(ldaScore, 'business')}
+                                        {getTopicScore(ldaScores, 'business')}
                                     </Td>
                                 </Tr>
                                 <Tr>
                                     <Td>2</Td>
                                     <Td>Education</Td>
                                     <Td isNumeric>
-                                        {getTopicScore(ldaScore, 'education')}
+                                        {getTopicScore(ldaScores, 'education')}
                                     </Td>
                                 </Tr>
                                 <Tr>
                                     <Td>3</Td>
                                     <Td>Entertainment</Td>
                                     <Td isNumeric>
-                                        {getTopicScore(ldaScore, 'entertainment')}
+                                        {getTopicScore(ldaScores, 'entertainment')}
                                     </Td>
                                 </Tr>
                                 <Tr>
                                     <Td>4</Td>
                                     <Td>Places</Td>
                                     <Td isNumeric>
-                                        {getTopicScore(ldaScore, 'places')}
+                                        {getTopicScore(ldaScores, 'places')}
                                     </Td>
                                 </Tr>
                                 <Tr>
                                     <Td>5</Td>
                                     <Td>Politics</Td>
                                     <Td isNumeric>
-                                        {getTopicScore(ldaScore, 'politics')}
+                                        {getTopicScore(ldaScores, 'politics')}
                                     </Td>
                                 </Tr>
                                 <Tr>
                                     <Td>6</Td>
                                     <Td>Sport</Td>
                                     <Td isNumeric>
-                                        {getTopicScore(ldaScore, 'sport')}
+                                        {getTopicScore(ldaScores, 'sport')}
                                     </Td>
                                 </Tr>
                             </Tbody>
-                            <Tfoot>
-                                <Tr>
-                                    <Th colSpan={2}>Total</Th>
-                                    <Th isNumeric>172</Th>
-                                </Tr>
-                            </Tfoot>
                         </Table>
-                    )} */}
+                    )}
                 <Text fontSize="xl" fontWeight="semibold">Topic Keywords</Text>
                 <Box marginBottom={4}>
                     {isLdaScoresError && <Text>Error loading data</Text>}
                     {isLdaScoresLoading && <Spinner color="teal.400" />}
-                    {/* {ldaScores
-                        && <WordCloud data={generateLdaKeywords(ldaScores, cityIndex)} />} */}
+                    {ldaScores
+                        && <WordCloud data={generateLdaKeywords(ldaScores)} />}
                 </Box>
             </Box>
         </Flex>
