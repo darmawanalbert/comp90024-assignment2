@@ -44,8 +44,8 @@ ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 
 chmod 400 keypairs/keypair-instance4
 # ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo rm -r harvesters/
 scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 harvesters/docker-compose.yml ubuntu@$INSTANCE4:harvesters.docker-compose.yml
-ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo docker-compose -f harvesters.docker-compose.yml pull
-# ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo docker-compose -f harvesters.docker-compose.yml push
+ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo docker pull wildananugrah/twitter_search
+ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo docker pull wildananugrah/twitter_collect
 ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo docker-compose -f harvesters.docker-compose.yml down
 ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo docker-compose -f harvesters.docker-compose.yml up -d
 
