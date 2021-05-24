@@ -13,4 +13,4 @@ COPY classifier/ .
 
 RUN pip install -r requirements.txt
 
-CMD ["python","-u","app.py"]
+CMD ["python","-u","/app/app.py"]
