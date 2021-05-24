@@ -119,6 +119,7 @@ def get_security_group_name(conn):
     return security_group.name
 
 def create_instance(server_name_list, conn):
+    server_list = {}
     for server in server_name_list:
         while True: # magic happens here.
             try:
@@ -137,7 +138,9 @@ def create_instance(server_name_list, conn):
                 server = conn.compute.find_server(server['name'])
                 conn.compute.delete_server(server)
                 continue
+            server_list[server.name] = { 'addr' : server.addresses[NETWORK_NAME][0]['addr'], 'keypair' : f'{FOLDER_NAME}keypair-{server.name}' }
             break
+    return server_list
         
 def setup_docker(conn):
     server_list = {}
@@ -217,7 +220,7 @@ def create_harvester_docker_compose(instance4):
     fout.write(template)
     fout.close()
 
-def create_docker_compose(instance4):
+def create_docker_compose(instance1):
     
     fin = open("templates/docker-compose.template", "rt")
     
@@ -225,7 +228,7 @@ def create_docker_compose(instance4):
     
     for line in fin:
         
-        fout.write(line.replace('${INSTANCE4}', instance4))
+        fout.write(line.replace('${INSTANCE1}', instance1))
         
     fin.close()
     fout.close()
@@ -361,7 +364,7 @@ def deploy_all():
         setup_swarm_join(server_list, swarm_join_token)
 
         # create docker-compose.yml
-        create_docker_compose(instance4['addr'])
+        create_docker_compose(instance1['addr'])
 
         # setup docker compose
         setup_docker_compose(instance1)
@@ -412,32 +415,6 @@ def update_app():
         print(f"Instance 3 ip address:", os.environ["INSTANCE3"])
         print(f"Instance 4 ip address:", os.environ["INSTANCE4"])
         
-        # # setup couchdb
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance3 ubuntu@{instance3_addr} sudo rm -r database/ ")
-        # execute_command(f"scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance3 -r database/ ubuntu@{instance3_addr}:database/ ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance3 ubuntu@{instance3_addr} 'bash -s' < ./database/setup_workerdb1.sh ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo rm -r database/ ")
-        # execute_command(f"scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 -r database/ ubuntu@{instance4_addr}:database/ ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} 'bash -s' < ./database/setup_masterdb.sh ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} npm --prefix ./database/ install ./database/ ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} grunt --gruntfile ./database/Gruntfile.js couch-compile ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} grunt --gruntfile ./database/Gruntfile.js couch-push ")
-        
-        # # setup harvesters app
-        # execute_command(f"scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 -r harvesters/ ubuntu@{instance4_addr}:harvesters/ ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo docker-compose -f harvesters/docker-compose.yml build ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo docker-compose -f harvesters/docker-compose.yml pull ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo docker-compose -f harvesters/docker-compose.yml up --force-recreate --build -d")
-
-        # # build frontend and service image
-        # execute_command(f"docker-compose build ")
-        # execute_command(f"docker-compose push ")
-
-        # # setup frontend and service docker app
-        # execute_command(f"ssh -i keypairs/keypair-instance1 ubuntu@{instance1_addr} sudo rm docker-compose.yml ")
-        # execute_command(f"scp -i keypairs/keypair-instance1 docker-compose.yml ubuntu@{instance1_addr}:docker-compose.yml ")
-        # execute_command(f"ssh -i keypairs/keypair-instance1 ubuntu@{instance1_addr} sudo docker stack deploy comp90024 -c docker-compose.yml ")
-
         sp.call("./run_deploy_source.sh", shell=True)
 
     except Exception as err:
