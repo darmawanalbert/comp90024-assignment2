@@ -15,8 +15,8 @@ RUN pip install -r requirements.txt
 
 CMD ["python","-u","app.py"]
 
-# docker build -t test -f classifier.Dockerfile .
-# docker container create --name test test:latest
+# docker build -t test -f services.Dockerfile .
+# docker run --name test -p 8080:8080  test:latest
 # docker start test
 # docker rm -vf $(docker ps -a -q) ; docker rmi -f $(docker images -a -q)
 # docker rmi -f $(docker images -a -q)

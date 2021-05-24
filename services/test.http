@@ -1,0 +1,8 @@
+### 
+GET http://34.134.110.20:8080/cities
+
+### 
+GET http://34.134.110.20:8080/lda-scores
+
+###
+GET http://34.134.110.20:8080/charts

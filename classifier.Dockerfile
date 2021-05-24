@@ -14,3 +14,9 @@ COPY classifier/ .
 RUN pip install -r requirements.txt
 
 CMD ["python","-u","topic_classifier.py"]
+
+# docker build -t test -f classifier.Dockerfile .
+# docker container create --name test test:latest
+# docker start test
+# docker rm -vf $(docker ps -a -q) ; docker rmi -f $(docker images -a -q)
+# docker rmi -f $(docker images -a -q)

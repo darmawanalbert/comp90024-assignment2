@@ -16,8 +16,9 @@ services:
             mode: replicated
             replicas: 2
         environment:
-            DBNAME: testdb
+            DB_NAME_LDA: comp90024_lda_scoring/
             DBHOST: http://admin:admin@${INSTANCE4}:15984/
+            PORT: 8080
         ports:
             - "8080:8080"
         networks:
@@ -41,7 +42,7 @@ services:
         image: wildananugrah/classifier
         command: python -u /app/app.py
         environment:
-            DBNAME: testdb
+            DB_NAME: comp90024_lda_scoring
             DBHOST: "http://admin:admin@${INSTANCE4}:15984/"
             QUERY: jokowi
         labels:
