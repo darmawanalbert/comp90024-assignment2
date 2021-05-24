@@ -5,15 +5,13 @@
 # Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
 # Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
 
-
 import os
 from shapely.geometry import Point, MultiPolygon
 from shapely.geometry.polygon import Polygon
 import sys
 import json
-# sys.path.append('../')
 
-# GEOJSON_ADDRESS='../frontend/components/cities_top50_simplified.geojson'
+
 GEOJSON_ADDRESS = os.environ.get('GEOJSON_ADDRESS') if os.environ.get('GEOJSON_ADDRESS') != None else "cities_top50_simplified.geojson" 
 current_path = os.path.dirname(__file__)
 new_path = os.path.relpath(GEOJSON_ADDRESS,current_path)
@@ -63,3 +61,4 @@ class LocationUtils():
                         self.location_name = location['location_name']
                         return self.location_found, self.location_id,self.location_name
         return self.location_found, self.location_id, self.location_name
+

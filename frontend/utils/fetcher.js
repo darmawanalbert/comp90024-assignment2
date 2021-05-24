@@ -18,4 +18,22 @@ const useMapInfo = (apiUrl) => {
     };
 };
 
-export { useMapInfo };
+const useLdaScores = (apiUrl) => {
+    const { data, error } = useSWR(`${apiUrl}/lda-scores`);
+    return {
+        ldaScores: data,
+        isLdaScoresLoading: !error && !data,
+        isLdaScoresError: error,
+    };
+};
+
+const useChartInfo = (apiUrl) => {
+    const { data, error } = useSWR(`${apiUrl}/charts`);
+    return {
+        chartInfo: data,
+        isChartInfoLoading: !error && !data,
+        isChartInfoError: error,
+    };
+};
+
+export { useMapInfo, useLdaScores, useChartInfo };

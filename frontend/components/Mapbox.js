@@ -13,10 +13,11 @@ import React, { useRef, useState, useEffect } from 'react';
 import {
     Box, Flex, Text, Stat, StatLabel, StatNumber, StatGroup,
     Table, TableCaption, Thead, Tbody, Th, Td, Tr, Tfoot,
+    Spinner,
 } from '@chakra-ui/react';
 import mapboxgl from 'mapbox-gl/dist/mapbox-gl';
 import { MAPBOX_PUBLIC_KEY } from '../utils/config';
-import { addDataLayer, initialiseMap } from '../utils/mapboxUtil';
+import { useMapInfo, useLdaScores } from '../utils/fetcher';
 
 import WordCloud from './WordCloud';
 
@@ -34,11 +35,12 @@ const Mapbox = ({ apiUrl }) => {
     const mapContainer = useRef();
     const [lng, setLng] = useState(144.9637);
     const [lat, setLat] = useState(-37.8130);
-    // const [lng, setLng] = useState(-77.02);
-    // const [lat, setLat] = useState(-38.887);
-    const [zoom, setZoom] = useState(12.5);
+    const [zoom, setZoom] = useState(7.60);
     const [Map, setMap] = useState();
-    const data = 'https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson';
+    const [cityName, setCityName] = useState('melbourne');
+
+    const { mapInfo, isMapInfoLoading, isMapInfoError } = useMapInfo(apiUrl);
+    const { ldaScores, isLdaScoresLoading, isLdaScoresError } = useLdaScores(apiUrl);
 
     useEffect(() => {
         setIsComponentMounted(true);
@@ -48,13 +50,24 @@ const Mapbox = ({ apiUrl }) => {
             center: [lng, lat],
             zoom,
             pitch: 45,
-            // maxBounds: [
-            //     [-77.875588, 38.50705], // Southwest coordinates
-            //     [-76.15381, 39.548764], // Northeast coordinates
-            // ],
+            maxBounds: [
+                [96.8168, -43.7405], // Southwest coordinates
+                [159.1092, -9.1422], // Northeast coordinates
+            ],
         });
 
-        initialiseMap(mapboxgl, map);
+        map.on('click', 'cities', (e) => {
+            setCityName(e.features[0].properties.UCL_NAME_2016.toLowerCase());
+        });
+
+        map.on('mouseenter', 'cities', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        map.on('mouseleave', 'cities', () => {
+            map.getCanvas().style.cursor = '';
+        });
+
         map.on('move', () => {
             setLng(map.getCenter().lng.toFixed(4));
             setLat(map.getCenter().lat.toFixed(4));
@@ -64,56 +77,73 @@ const Mapbox = ({ apiUrl }) => {
     }, []);
 
     useEffect(() => {
-        if (isComponentMounted && data) {
+        if (isComponentMounted && mapInfo) {
             Map.on('load', () => {
-                addDataLayer(Map, data);
+                Map.addSource('cities', {
+                    type: 'geojson',
+                    data: mapInfo,
+                });
+
+                Map.addLayer({
+                    id: 'cities',
+                    type: 'fill',
+                    source: 'cities',
+                    layout: {},
+                    paint: {
+                        'fill-color': '#0080ff',
+                        'fill-opacity': 0.5,
+                    },
+                });
+
+                Map.addLayer({
+                    id: 'city-outlines',
+                    type: 'line',
+                    source: 'cities',
+                    layout: {},
+                    paint: {
+                        'line-color': '#000000',
+                        'line-width': 3,
+                    },
+                });
             });
         }
-    }, [isComponentMounted, setMap, data, Map]);
+    }, [isComponentMounted, setMap, mapInfo, Map]);
 
-    const ldaResults = [
-        { text: 'day', value: 0.01589293 },
-        { text: 'photo', value: 0.00922306 },
-        { text: 'posted', value: 0.00845825 },
-        { text: 'australia', value: 0.00576136 },
-        { text: 'one', value: 0.00516197 },
-        { text: 'victoria', value: 0.00382048 },
-        { text: 'love', value: 0.00351002 },
-        { text: 'mother', value: 0.01062788 },
-        { text: 'happy', value: 0.00915481 },
-        { text: 'would', value: 0.00297083 },
-        { text: 'lisapresley', value: 0.00585826 },
-        { text: 'year', value: 0.00502370 },
-        { text: 'make', value: 0.00365274 },
-        { text: 'know', value: 0.00412439 },
-        { text: 'holy', value: 0.00328865 },
-        { text: 'mainsundayservice', value: 0.00310556 },
-        { text: 'see', value: 0.00309822 },
-        { text: 'god', value: 0.00299292 },
-        { text: 'like', value: 0.00850314 },
-        { text: 'melbourne', value: 0.00699135 },
-        { text: 'mum', value: 0.00557472 },
-        { text: 'today', value: 0.00500120 },
-        { text: 'naomirwolf', value: 0.00431268 },
-        { text: 'good', value: 0.00871694 },
-        { text: 'go', value: 0.00596997 },
-        { text: 'time', value: 0.00358518 },
-        { text: 'night', value: 0.00434714 },
-        { text: 'people', value: 0.00411526 },
-        { text: 'u', value: 0.00380271 },
-        { text: 'game', value: 0.00363156 },
-        { text: 'get', value: 0.00519592 },
-        { text: 'need', value: 0.00483581 },
-        { text: 'team', value: 0.00407634 },
-        { text: 'thank', value: 0.00403449 },
-        { text: 'back', value: 0.00351706 },
-    ];
+    const generateLdaKeywords = (ldaParam) => {
+        if (Array.isArray(ldaParam) && ldaParam.length > 0) {
+            const cityObject = ldaParam.find((obj) => obj.key[1] === cityName);
+            if (typeof cityObject === 'object') {
+                const ldaObject = cityObject.value.lda_keywords;
+                return Object.keys(ldaObject).map(
+                    (keyword, i) => ({ text: keyword, value: ldaObject[keyword] }),
+                );
+            }
+            return [];
+        }
+        return [];
+    };
+
+    const getTopicScore = (ldaParam, topicLabel) => {
+        if (Array.isArray(ldaParam) && ldaParam.length > 0) {
+            const cityObject = ldaParam.find((obj) => obj.key[1] === cityName);
+            if (typeof cityObject === 'object') {
+                return cityObject.value.topic_score[topicLabel];
+            }
+            return 0;
+        }
+        return 0;
+    };
+
+    const today = new Date();
+    const day = today.getDate();
+    const month = today.toLocaleString('default', { month: 'long' });
+    const year = today.getFullYear();
 
     return (
         <Flex>
             <div className="map-container" ref={mapContainer} style={mapContainerStyle} />
             <Box w={1 / 3} p={4} borderRight="1px" borderRightColor="gray.200" overflowY="scroll" height="93vh">
-                <Text fontSize="xl" fontWeight="semibold">Info</Text>
+                <Text fontSize="xl" fontWeight="semibold">{`Selected City: ${cityName}`}</Text>
                 <StatGroup p={4} borderWidth="1px" borderRadius="lg" overflow="hidden" justifyContent="center">
                     <Stat>
                         <StatLabel>Longitude</StatLabel>
@@ -130,57 +160,71 @@ const Mapbox = ({ apiUrl }) => {
                 </StatGroup>
                 <br />
                 <Text fontSize="xl" fontWeight="semibold">Topic Scores</Text>
-                <Table variant="simple">
-                    <TableCaption>Last updated: April 2021</TableCaption>
-                    <Thead>
-                        <Tr>
-                            <Th>No</Th>
-                            <Th>Topic Name</Th>
-                            <Th isNumeric>#Tweets</Th>
-                        </Tr>
-                    </Thead>
-                    <Tbody>
-                        <Tr>
-                            <Td>1</Td>
-                            <Td>Business</Td>
-                            <Td isNumeric>104</Td>
-                        </Tr>
-                        <Tr>
-                            <Td>2</Td>
-                            <Td>Politics</Td>
-                            <Td isNumeric>58</Td>
-                        </Tr>
-                        <Tr>
-                            <Td>3</Td>
-                            <Td>Entertainment</Td>
-                            <Td isNumeric>10</Td>
-                        </Tr>
-                        <Tr>
-                            <Td>1</Td>
-                            <Td>Business</Td>
-                            <Td isNumeric>104</Td>
-                        </Tr>
-                        <Tr>
-                            <Td>2</Td>
-                            <Td>Politics</Td>
-                            <Td isNumeric>58</Td>
-                        </Tr>
-                        <Tr>
-                            <Td>3</Td>
-                            <Td>Entertainment</Td>
-                            <Td isNumeric>10</Td>
-                        </Tr>
-                    </Tbody>
-                    <Tfoot>
-                        <Tr>
-                            <Th colSpan={2}>Total</Th>
-                            <Th isNumeric>172</Th>
-                        </Tr>
-                    </Tfoot>
-                </Table>
+                {isLdaScoresError && <Text>Error loading data</Text>}
+                {isLdaScoresLoading && <Spinner color="teal.400" />}
+                {ldaScores
+                    && (
+                        <Table variant="simple">
+                            <TableCaption>{`Last updated: ${day} ${month} ${year}`}</TableCaption>
+                            <Thead>
+                                <Tr>
+                                    <Th>No</Th>
+                                    <Th>Topic Name</Th>
+                                    <Th isNumeric>Scores</Th>
+                                </Tr>
+                            </Thead>
+                            <Tbody>
+                                <Tr>
+                                    <Td>1</Td>
+                                    <Td>Business</Td>
+                                    <Td isNumeric>
+                                        {getTopicScore(ldaScores, 'business')}
+                                    </Td>
+                                </Tr>
+                                <Tr>
+                                    <Td>2</Td>
+                                    <Td>Education</Td>
+                                    <Td isNumeric>
+                                        {getTopicScore(ldaScores, 'education')}
+                                    </Td>
+                                </Tr>
+                                <Tr>
+                                    <Td>3</Td>
+                                    <Td>Entertainment</Td>
+                                    <Td isNumeric>
+                                        {getTopicScore(ldaScores, 'entertainment')}
+                                    </Td>
+                                </Tr>
+                                <Tr>
+                                    <Td>4</Td>
+                                    <Td>Places</Td>
+                                    <Td isNumeric>
+                                        {getTopicScore(ldaScores, 'places')}
+                                    </Td>
+                                </Tr>
+                                <Tr>
+                                    <Td>5</Td>
+                                    <Td>Politics</Td>
+                                    <Td isNumeric>
+                                        {getTopicScore(ldaScores, 'politics')}
+                                    </Td>
+                                </Tr>
+                                <Tr>
+                                    <Td>6</Td>
+                                    <Td>Sport</Td>
+                                    <Td isNumeric>
+                                        {getTopicScore(ldaScores, 'sport')}
+                                    </Td>
+                                </Tr>
+                            </Tbody>
+                        </Table>
+                    )}
                 <Text fontSize="xl" fontWeight="semibold">Topic Keywords</Text>
                 <Box marginBottom={4}>
-                    <WordCloud data={ldaResults} />
+                    {isLdaScoresError && <Text>Error loading data</Text>}
+                    {isLdaScoresLoading && <Spinner color="teal.400" />}
+                    {ldaScores
+                        && <WordCloud data={generateLdaKeywords(ldaScores)} />}
                 </Box>
             </Box>
         </Flex>

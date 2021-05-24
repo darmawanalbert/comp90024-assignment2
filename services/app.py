@@ -1,48 +1,37 @@
 # COMP90024 Team 1
-# Albert, Darmawan (1168452) - Jakarta, ID - darmawana@student.unimelb.edu.au
-# Clarisca, Lawrencia (1152594) - Melbourne, AU - clawrencia@student.unimelb.edu.au
-# I Gede Wibawa, Cakramurti (1047538) - Melbourne, AU - icakramurti@student.unimelb.edu.au
-# Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
-# Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
+# Albert, Darmawan(1168452) - Jakarta, ID - darmawana@student.unimelb.edu.au
+# Clarisca, Lawrencia(1152594) - Melbourne, AU - clawrencia@student.unimelb.edu.au
+# I Gede Wibawa, Cakramurti(1047538) - Melbourne, AU - icakramurti@student.unimelb.edu.au
+# Nuvi, Anggaresti(830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
+# Wildan Anugrah, Putra(1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
 
 from flask import Flask, jsonify, request, make_response
 import requests
 import os
 import json
 
+import scipy
+import numpy as np
 import argparse
+import calendar
+
+from scipy import stats
 from flask_cors import CORS, cross_origin
-# from routes import request_api
+from datetime import date, datetime, timedelta
 
 APP = Flask(__name__)
 CORS = CORS(APP, resources={r"/*": {"origins": "*"}})
 
-DB_HOST = os.environ.get('DBHOST') if os.environ.get('DBHOST') != None else "http://admin:admin@127.0.0.1:5984/"
-DB_NAME = os.environ.get('DBNAME') if os.environ.get('DBNAME') != None else "testdb"
+# Declares database constants
+DB_HOST = os.environ.get('DBHOST') if os.environ.get('DBHOST') != None else "http://admin:admin@45.113.235.190:25984/"
+DB_NAME_LDA = os.environ.get('DB_NAME_LDA') if os.environ.get('DB_NAME_LDA') != None else "comp90024_lda_scoring/"
+DESIGN_LDA = "_design/lda_topic/"
+VIEW_LDA = "_view/score_output"
+# End of database constant declaration
 
-@APP.errorhandler(400)
-def handle_400_error(_error):
-    """Return a http 400 error to client"""
-    return make_response(jsonify({'error': 'Misunderstood'}), 400)
-
-
-@APP.errorhandler(401)
-def handle_401_error(_error):
-    """Return a http 401 error to client"""
-    return make_response(jsonify({'error': 'Unauthorised'}), 401)
-
-
-@APP.errorhandler(404)
-def handle_404_error(_error):
-    """Return a http 404 error to client"""
-    return make_response(jsonify({'error': 'Not found'}), 404)
-
-
-@APP.errorhandler(500)
-def handle_500_error(_error):
-    """Return a http 500 error to client"""
-    return make_response(jsonify({'error': 'Server error'}), 500)
-
+# Start of functions
+# Start of endpoints, three in total
+# Retrieves geojson for top 50 cities
 @APP.route("/cities", methods=["GET"])
 @cross_origin()
 def cities():
@@ -52,35 +41,202 @@ def cities():
 
     return jsonify(data)
 
-@APP.route('/charts/all', methods=['GET'])
+# Retrieves daily LDA scores for all cities. Can specify a range of dates.
+@APP.route("/lda-scores", methods=['GET'])
 @cross_origin()
-def analysis_all():
-    path = "./data/chart1.json"
+def lda_scoring():
+    start_temp = [0,0,0]
+    if 'start_date' in request.args:
+        start_date = request.args['start_date']
+    else:
+        start_date = str(date.today() - timedelta(days=1)) # Defaults to yesterday
+    
+    for i in range(len(start_temp)):
+        start_temp[i] = int(start_date.split('-')[i])
+    _startkey = start_temp
+    
+    end_temp = [0,0,0]
+    if 'end_date' in request.args:
+        end_date = request.args['end_date']
+        if datetime.strptime(end_date, '%Y-%m-%d') < datetime.strptime(start_date, '%Y-%m-%d'):
+            return "End date must be after start date."
+        for i in range(len(end_temp)):
+            end_temp[i] = int(end_date.split('-')[i])
+        _endkey = end_temp
+    
+    if _startkey:
+       obj = {"startkey": [_startkey], "endkey": [_startkey, {}]} # Defaults to one day data
+    elif _startkey and _endkey:
+       obj = {"startkey": [_startkey], "endkey": [_endkey, {}]}
+    else:
+        return "Error: No start date provided. Please specify a start date (and end date, if applicable)."
 
-    with open(path) as f:
-        data = json.load(f)
+    scoring_json = raw_lda(obj)
 
-    return jsonify(data)
+    return jsonify(scoring_json["rows"])
 
+# Get monthly analysis for all cities across three metrics: income, age, and unemployment. Can specify a range of months.
 @APP.route('/charts', methods=['GET'])
 @cross_origin()
 def analysis_id():
-    path = "./data/chart1.json"
-
-    if 'id' in request.args:
-        _id = request.args['id']
+    start_temp = [0,0,0]
+    if 'start_month' in request.args:
+        start_month = request.args['start_month']
     else:
-        return "Error: No id field provided. Please specify an id."
+        start_month = str(date.today().strftime("%Y-%m")) # Defaults to current month
+    
+    start_date = start_month + '-' + "1"
+    
+    for i in range(len(start_temp)):
+        start_temp[i] = int(start_date.split('-')[i])
+    _startkey = start_temp
+    
+    end_temp = [0,0,0]
+    if 'end_month' in request.args:
+        end_month = request.args['end_month']
+        if datetime.strptime(end_month, '%Y-%m') < datetime.strptime(start_month, '%Y-%m'):
+            return "End month must be after start month."
+        last_day = calendar.monthrange(end_month.split('-')[0], end_month.split('-')[1])[1]
+    else: # Defaults to one month data
+        end_month = start_month
+        last_day = calendar.monthrange(int(end_month.split('-')[0]), int(end_month.split('-')[1]))[1]
+    
+    end_date = end_month + '-' + str(last_day)
+    for i in range(len(end_temp)):
+        end_temp[i] = int(end_date.split('-')[i])
+    _endkey = end_temp
+    
+    if _startkey:
+       obj = {"startkey": [_startkey], "endkey": [_endkey, {}]}
+    else:
+        return "Error: No start date provided. Please specify a start date (and end date, if applicable)."
+    
+    lda_scores = raw_lda(obj)["rows"]
+    lda_aggregate = aggregated_lda(lda_scores)
+    
+    # Creates a final json-serialisable collating all three metrics: income, unemployment, and age.
+    ID = 'id'
+    VALUE = 'value'
+    all_analysis = []
+    
+    income_analysis = {}
+    income_analysis[ID] = 'income'
+    income_analysis[VALUE] = analysis(lda_aggregate, median_income())
+    all_analysis.append(income_analysis)
 
-    results = []
+    unemployment_analysis = {}
+    unemployment_analysis[ID] = 'unemployment'
+    unemployment_analysis[VALUE] = analysis(lda_aggregate, unemployment())
+    all_analysis.append(unemployment_analysis)
+    
+    age_analysis = {}
+    age_analysis[ID] = 'age'
+    age_analysis[VALUE] = analysis(lda_aggregate, age())
+    all_analysis.append(age_analysis)
+
+    return jsonify(all_analysis)
+# End of endpoints
+
+# Request analytics data from the Database
+def raw_lda(req_params):
+    headers = {"content-type": "application/json"}
+    url = f"{DB_HOST}{DB_NAME_LDA}{DESIGN_LDA}{VIEW_LDA}"
+
+    data = json.dumps(req_params).encode('utf-8')
+
+    scoring_data = requests.post(url, data=data, headers=headers)
+    scoring_json = json.loads(scoring_data.text)
+
+    return scoring_json
+
+# Performs analysis of topic scores against the demographic metric values obtained from AURIN
+def analysis(topic_scores, ucl):
+    X_COOR = 'x'
+    Y_COOR = 'y'
+    GRADIENT = 'm'
+    Y_INTERCEPT = 'c'
+    R_SQUARED = 'r_squared'
+    P_VAL = 'p_val'
+    STD_ERR = 'std_err'
+
+    topic_dct = {}
+
+    for city, dct in topic_scores.items():
+        for topic, v in dct["topics"].items(): # iterates over the 6 topics
+            if topic not in topic_dct: # initialises the dictionary
+                topic_dct[topic] = {}
+                topic_dct[topic][X_COOR] = []
+                topic_dct[topic][Y_COOR] = []
+                topic_dct[topic][GRADIENT] = 0
+                topic_dct[topic][Y_INTERCEPT] = 0
+            topic_dct[topic][X_COOR].append(ucl[city]) # adds the demographic metric value for that city into the x-axis
+            topic_dct[topic][Y_COOR].append(v) # adds the score for that topic into the y-axis
+
+    # Scales x and y axes using a simple MinMax scaler
+    for k, val in topic_dct.items():
+        min_x = min(val[X_COOR])
+        max_x = max(val[X_COOR])
+        min_y = min(val[Y_COOR])
+        max_y = max(val[Y_COOR])
+        temp_x = [(val - min_x) / (max_x - min_x) for val in val[X_COOR]]
+        temp_y = [(val - min_y) / (max_y - min_y) for val in val[Y_COOR]]
+        val[X_COOR] = temp_x
+        val[Y_COOR] = temp_y
+    
+    # Performs linear regression and get r_squared, p_value, and standard error
+    for topic, val in topic_dct.items():
+        x_np = np.array(val[X_COOR])
+        y_np = np.array(val[Y_COOR])
+        val[GRADIENT], val[Y_INTERCEPT], r_value, val[P_VAL], val[STD_ERR] = scipy.stats.linregress(
+            x_np, y_np)
+        val[R_SQUARED] = r_value**2
+    
+    return topic_dct
+
+def aggregated_lda(lda_scores):
+    BIZ = 'business'
+    EDU = 'education'
+    ENTERTAINMENT = 'entertainment'
+    PLACES = 'places'
+    POL = 'politics'
+    SPORT = 'sport'
+    TWT_COUNT = 'tweets_count'
+    TOPICS = 'topics'
+    name_dct = ucl_name_to_code()
+    lda_dct = {}
+    
+    for score in lda_scores:
+        ucl_code = name_dct[score["key"][1]]
+        if ucl_code not in lda_dct:
+            lda_dct[ucl_code] = {TOPICS: {}, TWT_COUNT: 0}
+            lda_dct[ucl_code][TOPICS] = {BIZ: 0, EDU: 0, ENTERTAINMENT: 0, PLACES: 0, POL: 0, SPORT: 0}
+            lda_dct[ucl_code][TWT_COUNT] = 0
+        lda_dct[ucl_code][TWT_COUNT] += int(score['value'][TWT_COUNT])
+        for k, v in score['value']['topic_score'].items():
+            lda_dct[ucl_code][TOPICS][k] += int(v)
+    
+    for dct in lda_dct.values():
+        for k, v in dct[TOPICS].items():
+            dct[TOPICS][k] = v / dct[TWT_COUNT]
+
+    return lda_dct
+
+# Converts between UCL_NAME_2016 and UCL_CODE_2016
+def ucl_name_to_code():
+    path = "./data/cities_top50_simplified.geojson"
     with open(path) as f:
-        charts = json.load(f)
-        for chart in charts:
-            if chart['id'] == _id:
-                results.append(chart)
+        data = json.load(f)
+    
+    name_dct = {}
+    for feature in data["features"]:
+        code = feature["properties"]["UCL_CODE_2016"]
+        name = feature["properties"]["UCL_NAME_2016"].lower()
+        name_dct[name] = str(code)
 
-    return jsonify(results)
+    return name_dct
 
+# The next three functions are aggregating functions. Can't be compiled into one since they require different dictionary keys
+# Gets the average median income based on aggregated SA2 areas
 def median_income():
     sa2_aggregate = "./data/sa2_aggregate.json"
     path = "./data/SA2-G02_Selected_Medians_and_Averages-Census_2016.json"
@@ -90,7 +246,7 @@ def median_income():
     AVG_MED_WEEKLY_INC = 'avg_med_weekly_inc'
     SA2_ID = 'sa2_main16'
     
-    ucl_income = []
+    ucl_income = {}
     temp_income = {}
     with open(path) as path:
         sa2_json = json.load(path)
@@ -112,36 +268,16 @@ def median_income():
     UCL_CODE_2016 = 'UCL_CODE_2016'
     temp_dict = {}
     for k,v in temp_income.items():
+        # In case this data needs to be sent to frontend, for now no need.
         temp_dict = {}
         temp_dict[UCL_CODE_2016] = k
         temp_dict[AVG_MED_WEEKLY_INC] = temp_income[k][TOT_MED_WEEKLY_INC] / len(aggregate[k])
-        ucl_income.append(temp_dict)
+        # End of block
+        ucl_income[k] = temp_dict[AVG_MED_WEEKLY_INC]
 
     return ucl_income
 
-@APP.route('/median_income/all', methods=['GET'])
-@cross_origin()
-def median_income_all():
-    ucl_income = median_income()
-
-    return jsonify(ucl_income)
-
-@APP.route('/median_income', methods=['GET'])
-@cross_origin()
-def median_income_id():
-    
-    ucl_income = median_income()
-    UCL_CODE_2016 = 'UCL_CODE_2016'
-
-    if 'id' in request.args:
-        _id = request.args['id']
-    else:
-        return "Error: No id field provided. Please specify an id."
-
-    for ucl in ucl_income:
-        if ucl[UCL_CODE_2016] == _id:
-            return jsonify(ucl)
-
+# Gets the aggregated employment rates for all cities based on SA2s that are included within its borders.
 def unemployment():
     sa2_aggregate = "./data/sa2_aggregate.json"
     path = "./data/SA2-G40_Selected_Labour_Force__Education_and_Migration_Characteristics_by_Sex-Census_2016.json"
@@ -153,7 +289,7 @@ def unemployment():
     TOT_LABOUR_FORCE = 'tot_lf'
     PERCENTAGE_UNEMPLOYED = 'unemployment_rate'
 
-    ucl_unemployment = []
+    ucl_unemployment = {}
     temp_unemployment = {}
     with open(path) as path:
         sa2_json = json.load(path)
@@ -175,54 +311,22 @@ def unemployment():
     
     UCL_CODE_2016 = 'UCL_CODE_2016'
     for k,v in temp_unemployment.items():
+        # In case this data needs to be sent to frontend, for now no need.
         temp_dict = {}
         temp_dict[UCL_CODE_2016] = k
         temp_dict[PERCENTAGE_UNEMPLOYED] = temp_unemployment[k][TOTAL_UNEMPLOYMENT] / temp_unemployment[k][TOT_LABOUR_FORCE]
         temp_dict[TOT_LABOUR_FORCE] = temp_unemployment[k][TOT_LABOUR_FORCE]
-        ucl_unemployment.append(temp_dict)
+        # End of block
+        ucl_unemployment[k] = temp_dict[PERCENTAGE_UNEMPLOYED]
 
     return ucl_unemployment
 
-@APP.route('/unemployment_rate/all', methods=['GET'])
-@cross_origin()
-def unemployment_all():
-    ucl_unemployment = unemployment()
-
-    return jsonify(ucl_unemployment)
-
-@APP.route('/unemployment_rate', methods=['GET'])
-@cross_origin()
-def unemployment_id():
-    ucl_unemployment = unemployment()
-
-    UCL_CODE_2016 = 'UCL_CODE_2016'
-
-    if 'id' in request.args:
-        _id = request.args['id']
-    else:
-        return "Error: No id field provided. Please specify an id."
-
-    for ucl in ucl_unemployment:
-        if ucl[UCL_CODE_2016] == _id:
-            return jsonify(ucl)
-
+# Gets the proportion of persons aged 25-34 years old for all cities, using aggregated SA2 data.
 def age():
-    # Database access, later delete
-    headers = {"content-type": "application/json"}
-    url = "http://admin:admin@45.113.235.136:15984/comp90024_tweet_harvest/_design/topic_modelling/_view/count_by_place"
-
-    obj = {"startkey": [[2021, 5, 9]], "endkey": [[2021, 5, 9], {}], "group": True}
-    data = json.dumps(obj).encode('utf-8')
-
-    count_data = requests.post(url, data=data, headers=headers)
-    count_json = count_data.text
-    count_dict = json.loads(count_json)
-    # End of database access
-
     sa2_aggregate = "./data/sa2_aggregate.json"
     path = "./data/SA2-G01_Selected_Person_Characteristics_by_Sex-Census_2016.json"
 
-    ucl_age = []
+    ucl_age = {}
     temp_age = {}
     
     SA2_ID = 'sa2_main16'
@@ -230,8 +334,7 @@ def age():
     POP_COUNT = 'tot_p'
     
     PROP_AGE_25_34 = 'proportion_age_25_34'
-    TOTAL_POP = 'total_pop'
-
+    
     with open(path) as path:
         sa2_json = json.load(path)
         sa2_all = sa2_json['features']
@@ -251,54 +354,25 @@ def age():
     
     UCL_CODE_2016 = 'UCL_CODE_2016'
     for k,v in temp_age.items():
+        # In case this data needs to be sent to frontend, for now no need.
         temp_dict = {}
         temp_dict[UCL_CODE_2016] = k
         temp_dict[PROP_AGE_25_34] = temp_age[k][AGE_25_34_COUNT] / temp_age[k][POP_COUNT]
         temp_dict[POP_COUNT] = temp_age[k][POP_COUNT]
-        ucl_age.append(temp_dict)
+        # End of block
+        ucl_age[k] = temp_dict[PROP_AGE_25_34]
 
     return ucl_age
 
-
-@APP.route("/age_25_34/all", methods=['GET'])
-@cross_origin()
-def age_all():
-    ucl_age = age()
-    return jsonify(ucl_age)
-
-@APP.route('/age_25_34', methods=['GET'])
-@cross_origin()
-def age_id():
-    ucl_age = age()
-
-    UCL_CODE_2016 = 'UCL_CODE_2016'
-
-    if 'id' in request.args:
-        _id = request.args['id']
-    else:
-        return "Error: No id field provided. Please specify an id."
-
-    for ucl in ucl_age:
-        if ucl[UCL_CODE_2016] == _id:
-            return jsonify(ucl)
-
+# Homepage
 @APP.route("/")
 @cross_origin()
 def home():
-    headers = {"content-type": "application/json"}
-    url = "http://admin:admin@45.113.235.136:15984/comp90024_tweet_harvest/_design/topic_modelling/_view/count_by_place"
 
-    obj = {"startkey": [[2021, 5, 9]], "endkey": [[2021, 5, 9], {}], "group": True}
-    data = json.dumps(obj).encode('utf-8')
+    return "Hello. This is the service homepage."
+# End of functions
 
-    count_data = requests.post(url, data=data, headers=headers)
-    count_json = count_data.text
-    count_dict = json.loads(count_json)
-
-    return jsonify(count_dict)
-    
 if __name__ == "__main__":
-    # app.run(host="127.0.0.1", port=18080, debug=True)
     PARSER = argparse.ArgumentParser(
         description="Group 1 COMP90024")
 
@@ -313,22 +387,3 @@ if __name__ == "__main__":
         APP.run(host=HOST, port=PORT, debug=True)
     else:
         APP.run(host=HOST, port=PORT, debug=False)
-
-# Wildan's for reference
-# @app.route("/",methods=["GET"])
-# def get():
-#     limit = 20
-#     skip = 0
-#     if(request.args.get('limit') != None):
-#         limit = request.args.get('limit')
-    
-#     if(request.args.get('skip') != None):
-#         skip = request.args.get('skip')
-
-#     url = f"{DB_HOST}{DB_NAME}"
-#     query = {"selector": {},"limit": int(limit), "skip": int(skip)}
-#     headers = {'Content-Type': 'application/json'}
-#     response = requests.post(f"{url}/_find",headers=headers,data=json.dumps(query))
-#     response_json = json.loads(response.text)
-
-#     return jsonify({ 'number' : len(response_json['docs']), 'data': response_json })
