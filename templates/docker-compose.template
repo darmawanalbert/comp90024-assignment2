@@ -17,7 +17,7 @@ services:
             replicas: 2
         environment:
             DB_NAME_LDA: comp90024_lda_scoring/
-            DBHOST: http://admin:admin@${INSTANCE1}/database
+            DBHOST: http://admin:admin@${INSTANCE1}/database/
             PORT: 8080
         ports:
             - "8080:8080"

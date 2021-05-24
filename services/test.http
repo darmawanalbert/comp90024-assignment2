@@ -8,4 +8,16 @@ GET http://45.113.235.226:8080/lda-scores
 GET http://45.113.235.226:8080/charts
 
 ###
-GET http://admin:admin@45.113.233.242/database/comp90024_lda_scoring
+GET http://admin:admin@45.113.233.242/database/comp90024_lda_scoring/_design/lda_topic/_view/score_output
+
+###
+GET http://admin:admin@45.113.234.151:15984/comp90024_tweet_harvest/_design/topic_modelling/_view/by_date_and_place
+
+###
+GET http://admin:admin@45.113.234.151:15984/comp90024_tweet_search/_design/topic_modelling/_view/by_date_and_place
+
+###
+GET http://admin:admin@45.113.234.151:15984/comp90024_lda_scoring/_design/lda_topic/_view/score_output
+
+###
+GET http://admin:admin@45.113.233.242/database/comp90024_lda_scoring/_design/lda_topic/_view/score_output
