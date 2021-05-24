@@ -5,6 +5,11 @@
 # Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
 # Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
+chmod 400 keypairs/keypair-instance1
+chmod 400 keypairs/keypair-instance2
+chmod 400 keypairs/keypair-instance3
+chmod 400 keypairs/keypair-instance4
+
 # build new images
 docker-compose build
 docker-compose push
