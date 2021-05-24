@@ -16,7 +16,7 @@ services:
             mode: replicated
             replicas: 2
         environment:
-            DBNAME: testdb
+            DB_NAME_LDA: comp90024_lda_scoring/
             DBHOST: http://admin:admin@45.113.235.136:15984/
         ports:
             - "8080:8080"
@@ -39,11 +39,10 @@ services:
             context: . 
             dockerfile: ./classifier.Dockerfile
         image: wildananugrah/classifier
-        command: python -u /app/app.py
+        command: python -u app.py
         environment:
-            DBNAME: testdb
-            DBHOST: "http://admin:admin@45.113.235.136:15984/"
-            QUERY: jokowi
+            DB_NAME: comp90024_lda_scoring
+            ADDRESS: "http://admin:admin@45.113.235.136:15984/"
         labels:
             - "swarm.cronjob.enable=true"
             - "swarm.cronjob.schedule=* * * * *"
