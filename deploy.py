@@ -119,7 +119,6 @@ def get_security_group_name(conn):
     return security_group.name
 
 def create_instance(server_name_list, conn):
-    server_list = {}
     for server in server_name_list:
         while True: # magic happens here.
             try:
@@ -138,9 +137,7 @@ def create_instance(server_name_list, conn):
                 server = conn.compute.find_server(server['name'])
                 conn.compute.delete_server(server)
                 continue
-            server_list[server.name] = { 'addr' : server.addresses[NETWORK_NAME][0]['addr'], 'keypair' : f'{FOLDER_NAME}keypair-{server.name}' }
             break
-    return server_list
         
 def setup_docker(conn):
     server_list = {}
