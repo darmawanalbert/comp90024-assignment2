@@ -3,8 +3,5 @@ function (doc) {
     var date = d.getDate();
     var month = d.getMonth() + 1;
     var year = d.getFullYear();
-    if (doc.truncated === true)
-      emit([[year, month, date], doc.place.name], 1);
-    else
-      emit([[year, month, date], doc.place.name], 1);
+    emit([[year, month, date], doc.AURIN_loc_name.toLowerCase()], {id: doc._id, text: doc.text, aurin_id: doc.AURIN_id, coordinates: doc.coordinates});
   }
