@@ -210,8 +210,7 @@ def create_harvester_docker_compose(instance4):
     fin = open("templates/harvesters.docker-compose.yml.template", "rt")
     template = fin.read()
     template = template.replace('${INSTANCE4}', instance4)
-    template = template.replace('${INSTANCE4}', instance4)
-    
+
     fin.close()
 
     fout = open("harvesters/docker-compose.yml", "wt")

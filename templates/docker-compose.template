@@ -40,7 +40,7 @@ services:
             context: . 
             dockerfile: ./classifier.Dockerfile
         image: wildananugrah/classifier
-        command: python -u /app/app.py
+        command: python -u topic_classifier.py
         environment:
             DB_NAME: comp90024_lda_scoring
             DBHOST: "http://admin:admin@${INSTANCE1}/database"
