@@ -11,13 +11,13 @@ services:
     image: wildananugrah/twitter_collect
     environment:
       DB_NAME: comp90024_tweet_harvest
-      ADDRESS: http://admin:admin@45.113.235.136:15984/
+      ADDRESS: http://admin:admin@45.113.234.151:15984/
       API_TOKENS: /app/twitter-api-tokens.csv
       GEOJSON_ADDRESS: /app/cities_top50_simplified.geojson
   twitter_search:
     image: wildananugrah/twitter_search
     environment:
       DB_NAME: comp90024_tweet_search
-      ADDRESS: http://admin:admin@{INSTANCE4}:15984/
+      ADDRESS: http://admin:admin@45.113.234.151:15984/
       API_TOKENS: twitter-api-tokens.csv
       GEOJSON_ADDRESS: cities_top50_simplified.geojson
