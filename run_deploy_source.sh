@@ -5,13 +5,6 @@
 # Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
 # Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
 
-# remove all container in local machine
-# docker container stop $(docker container ls -aq)
-# docker container rm $(docker container ls -aq)
-
-# remove all image in local machine
-# docker image rm $(docker images -aq)
-
 # build new images
 docker-compose build
 docker-compose push

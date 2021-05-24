@@ -7,8 +7,10 @@
 
 FROM python:3.8
 
-COPY services/ /app/
+WORKDIR /app
 
-RUN pip install -r /app/requirements.txt
+COPY services/ .
 
-CMD ["python","-u","/app/app.py"]
+RUN pip install -r requirements.txt
+
+CMD ["python","-u","app.py"]

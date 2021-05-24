@@ -34,11 +34,11 @@ services:
             - "81:3000"
         networks:
             - net
-    harvester:
+    classifier:
         build:
             context: . 
-            dockerfile: ./harvester.Dockerfile
-        image: wildananugrah/harvester
+            dockerfile: ./classifier.Dockerfile
+        image: wildananugrah/classifier
         command: python -u /app/app.py
         environment:
             DBNAME: testdb

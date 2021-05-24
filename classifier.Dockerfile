@@ -7,8 +7,10 @@
 
 FROM python:3.8
 
-COPY harvesters/ /app/
+WORKDIR /app
 
-RUN pip install -r /app/requirements.txt
+COPY classifier/ .
 
-CMD ["python","-u","/app/app.py"]
+RUN pip install -r requirements.txt
+
+CMD ["python","-u","app.py"]
