@@ -18,6 +18,6 @@ services:
     image: wildananugrah/twitter_search
     environment:
       DB_NAME: comp90024_tweet_search
-      ADDRESS: http://admin:admin@{INSTANCE4}:15984/
+      ADDRESS: http://admin:admin@${INSTANCE4}:15984/
       API_TOKENS: twitter-api-tokens.csv
       GEOJSON_ADDRESS: cities_top50_simplified.geojson
