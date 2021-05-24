@@ -6,3 +6,6 @@ GET http://45.113.235.226:8080/lda-scores
 
 ###
 GET http://45.113.235.226:8080/charts
+
+###
+GET http://admin:admin@45.113.233.242/database/comp90024_lda_scoring

@@ -43,8 +43,7 @@ services:
         command: python -u topic_classifier.py
         environment:
             DB_NAME: comp90024_lda_scoring
-            DBHOST: "http://admin:admin@${INSTANCE1}/database"
-            QUERY: jokowi
+            DBHOST: "http://admin:admin@${INSTANCE4}:25984"
         labels:
             - "swarm.cronjob.enable=true"
             - "swarm.cronjob.schedule=* * * * *"
