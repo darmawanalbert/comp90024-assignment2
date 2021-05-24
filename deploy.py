@@ -217,17 +217,16 @@ def create_harvester_docker_compose(instance4):
     fout.write(template)
     fout.close()
 
-def create_docker_compose(instance1):
-    
-    fin = open("templates/docker-compose.template", "rt")
-    
-    fout = open(LOCAL_DOCKER_COMPOSE, "wt")
-    
-    for line in fin:
-        
-        fout.write(line.replace('${INSTANCE1}', instance1))
-        
+def create_docker_compose(instance1, instance4):
+    fin = open("harvesters/docker-compose.yml", "rt")
+    template = fin.read()
+    template = template.replace('${INSTANCE1}', instance1)
+    template = template.replace('${INSTANCE4}', instance4)
+
     fin.close()
+
+    fout = open("docker-compose.yml", "wt")
+    fout.write(template)
     fout.close()
 
 def create_nginx_conf(server_list):
@@ -361,7 +360,7 @@ def deploy_all():
         setup_swarm_join(server_list, swarm_join_token)
 
         # create docker-compose.yml
-        create_docker_compose(instance1['addr'])
+        create_docker_compose(instance1['addr'], instance4['addr'])
 
         # setup docker compose
         setup_docker_compose(instance1)
@@ -396,7 +395,7 @@ def update_app():
         create_constants_file(server_list)
         create_harvester_docker_compose(server_list['instance4']['addr'])
         create_init_env_local(server_list['instance1']['addr'])
-        create_docker_compose(server_list['instance1']['addr'])
+        create_docker_compose(server_list['instance1']['addr'], server_list['instance4']['addr'])
 
         copyfile("config.json", "frontend/config.json")
         copyfile("config.json", "services/config.json")
