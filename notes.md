@@ -1,0 +1,2 @@
+- create .env.local; after deploy delete
+- delete unnecessary files. 
