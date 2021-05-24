@@ -38,6 +38,7 @@ LOCAL_NGINX_DOCKER_COMPOSE = f"nginx.docker-compose.yml"
 LOCAL_NGINX_DOCKER_FILE = f"nginx.Dockerfile"
 LOCAL_CONSTANTS = f"constants.sh"
 LOCAL_CONFIG_JSON = f"config.json"
+ENV_LOCAL_FE_CONSTANTS = f"frontend/.env.local"
 
 def create_connection(auth_url, project_name, username, password, region_name,
                       user_domain, project_domain, app_name, app_version):
@@ -257,6 +258,17 @@ def create_constants_file(server_list):
     fout.write(template)
     fout.close()
 
+def create_init_env_local(instance1):
+    fin = open("templates/.env.local.template", "rt")
+    template = fin.read()
+    template = template.replace('${INSTANCE1}', instance1)
+
+    fin.close()
+
+    fout = open(ENV_LOCAL_FE_CONSTANTS, "wt")
+    fout.write(template)
+    fout.close()
+
 def setup_nginx(instance1):
     print(f"Copy default.conf to remote machine [{instance1['addr']}].")
     execute_command(f"scp -oStrictHostKeyChecking=no -i {instance1['keypair']}  {LOCAL_NGINX_FOLDER}/default.conf {DEFAULT_USER}@{instance1['addr']}:default.conf ")
@@ -380,6 +392,7 @@ def update_app():
         create_config_file(server_list)
         create_constants_file(server_list)
         create_harvester_docker_compose(server_list['instance4']['addr'])
+        create_init_env_local(server_list['instance1']['addr'])
 
         copyfile("config.json", "frontend/config.json")
         copyfile("config.json", "services/config.json")
