@@ -10,6 +10,11 @@ upstream backend {
     server ${INSTANCE2}:81;
 }
 
+upstream backendservices {
+    server ${INSTANCE1}:8080;
+    server ${INSTANCE2}:8080;
+}
+
 upstream backenddb {
     server ${INSTANCE3}:25984;
     server ${INSTANCE4}:15984;
@@ -21,6 +26,8 @@ server {
     server_name  localhost;
     
     location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
         proxy_pass http://backend;
     }
 
@@ -28,5 +35,11 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_pass http://backenddb/;
+    }
+
+    location /services/ {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_pass http://backendservices/;
     }
 }
