@@ -14,7 +14,6 @@ module.exports = function (grunt) {
           dbs: {
             files: {
               "/tmp/comp90024_tweet_harvest.json": "couchdb/comp90024_tweet_harvest/topic_modelling",
-              "/tmp/comp90024_tweet_harvest_summary.json": "couchdb/comp90024_tweet_harvest/summary",
               "/tmp/comp90024_tweet_search.json": "couchdb/comp90024_tweet_search/topic_modelling",
               "/tmp/comp90024_lda_scoring.json": "couchdb/comp90024_lda_scoring/lda_topic"
             }
@@ -28,7 +27,6 @@ module.exports = function (grunt) {
           twitter: {
             files: {
               "http://admin:admin@localhost:15984/comp90024_tweet_harvest": "/tmp/comp90024_tweet_harvest.json",
-              "http://admin:admin@localhost:15984/comp90024_tweet_harvest": "/tmp/comp90024_tweet_harvest_summary.json",
               "http://admin:admin@localhost:15984/comp90024_tweet_search": "/tmp/comp90024_tweet_search.json",
               "http://admin:admin@localhost:15984/comp90024_lda_scoring": "/tmp/comp90024_lda_scoring.json"
             }
