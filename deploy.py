@@ -236,6 +236,9 @@ def create_nginx_conf(server_list):
     template = fin.read()
     template = template.replace('${INSTANCE1}', server_list['instance1']['addr'])
     template = template.replace('${INSTANCE2}', server_list['instance2']['addr'])
+    template = template.replace('${INSTANCE3}', server_list['instance3']['addr'])
+    template = template.replace('${INSTANCE4}', server_list['instance4']['addr'])
+    
 
     fin.close()
 
