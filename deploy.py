@@ -5,6 +5,10 @@
 # Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
 # Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
 
+# DEPLOYMENT TOOLS
+# Option 1: Running all deployment. Destroy all instances, keypairs and security groups in the MRC, then re-create the instance, installing the apps, and deploy 
+# Option 2: Deploy the source code only. 
+
 import openstack
 import os, shutil
 import time
@@ -38,6 +42,7 @@ LOCAL_NGINX_DOCKER_COMPOSE = f"nginx.docker-compose.yml"
 LOCAL_NGINX_DOCKER_FILE = f"nginx.Dockerfile"
 LOCAL_CONSTANTS = f"constants.sh"
 LOCAL_CONFIG_JSON = f"config.json"
+ENV_LOCAL_FE_CONSTANTS = f"frontend/.env.local"
 
 def create_connection(auth_url, project_name, username, password, region_name,
                       user_domain, project_domain, app_name, app_version):
@@ -61,9 +66,9 @@ def execute_command(command_bash):
 
 def delete_all_instances(conn):
     for server in conn.compute.servers():
-        while True: # magic happens here.
+        while True: .
             try:
-                print(f"Deleting {server.name} ") # magic happens here.
+                print(f"Deleting {server.name} ") .
                 time.sleep(5)
                 conn.compute.delete_server(server)
             except Exception as err:
@@ -73,9 +78,9 @@ def delete_all_instances(conn):
 
 def delete_key_pairs(conn):
     for keypair in conn.compute.keypairs():
-        while True: # magic happens here.
+        while True: .
             try:
-                print(f"Deleting {keypair.name} ") # magic happens here.
+                print(f"Deleting {keypair.name} ") .
                 time.sleep(5)
                 conn.compute.delete_keypair(keypair)
             except Exception as err:
@@ -119,9 +124,9 @@ def get_security_group_name(conn):
 
 def create_instance(server_name_list, conn):
     for server in server_name_list:
-        while True: # magic happens here.
+        while True: .
             try:
-                print("Sleeping for 5s ") # magic happens here.
+                print("Sleeping for 5s ") .
                 time.sleep(5)
                 print(f"server {server['name']} processed..")
                 flavor = conn.compute.find_flavor(server['flavor'])
@@ -141,12 +146,12 @@ def create_instance(server_name_list, conn):
 def setup_docker(conn):
     server_list = {}
     for server in conn.compute.servers():
-        while True: # magic happens here.
+        while True: .
             try:
-                print("Sleeping for 5s ") # magic happens here.
+                print("Sleeping for 5s ") .
                 time.sleep(5)
                 print(f"name: {server.name} addr: {server.addresses[NETWORK_NAME][0]['addr']}, docker installing..")
-                server_address = server.addresses[NETWORK_NAME][0]['addr'] + "," # magic happens here.
+                server_address = server.addresses[NETWORK_NAME][0]['addr'] + "," .
                 command_bash = f"ansible-playbook {CREATE_INSTANCE_YML} -u ubuntu -i {server_address} --private-key {FOLDER_NAME}keypair-{server.name}"
                 result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
                 output, error = result.communicate()
@@ -216,17 +221,16 @@ def create_harvester_docker_compose(instance4):
     fout.write(template)
     fout.close()
 
-def create_docker_compose(instance4):
-    
+def create_docker_compose(instance1, instance4):
     fin = open("templates/docker-compose.template", "rt")
-    
-    fout = open(LOCAL_DOCKER_COMPOSE, "wt")
-    
-    for line in fin:
-        
-        fout.write(line.replace('${INSTANCE4}', instance4))
-        
+    template = fin.read()
+    template = template.replace('${INSTANCE1}', instance1)
+    template = template.replace('${INSTANCE4}', instance4)
+
     fin.close()
+
+    fout = open("docker-compose.yml", "wt")
+    fout.write(template)
     fout.close()
 
 def create_nginx_conf(server_list):
@@ -235,6 +239,9 @@ def create_nginx_conf(server_list):
     template = fin.read()
     template = template.replace('${INSTANCE1}', server_list['instance1']['addr'])
     template = template.replace('${INSTANCE2}', server_list['instance2']['addr'])
+    template = template.replace('${INSTANCE3}', server_list['instance3']['addr'])
+    template = template.replace('${INSTANCE4}', server_list['instance4']['addr'])
+    
 
     fin.close()
 
@@ -254,6 +261,17 @@ def create_constants_file(server_list):
     fin.close()
 
     fout = open(LOCAL_CONSTANTS, "wt")
+    fout.write(template)
+    fout.close()
+
+def create_init_env_local(instance1):
+    fin = open("templates/.env.local.template", "rt")
+    template = fin.read()
+    template = template.replace('${INSTANCE1}', instance1)
+
+    fin.close()
+
+    fout = open(ENV_LOCAL_FE_CONSTANTS, "wt")
     fout.write(template)
     fout.close()
 
@@ -319,6 +337,7 @@ def create_config_file(server_list):
     fout.write(json.dumps(server_list))
     fout.close()    
 
+# destroy all instances, security groups and keypairs then re-create the instances, security groups and keypairs
 def deploy_all():
     try:
         conn = create_connection(os.getenv('OS_AUTH_URL'),os.getenv('OS_PROJECT_NAME'), os.getenv('OS_USERNAME'),os.getenv('OS_PASSWORD_INPUT'),os.getenv('OS_REGION_NAME'),os.getenv('OS_USER_DOMAIN_NAME'),os.getenv('OS_PROJECT_DOMAIN_ID'),os.getenv('OS_PROJECT_NAME'),os.getenv('OS_IDENTITY_API_VERSION'))
@@ -346,7 +365,7 @@ def deploy_all():
         setup_swarm_join(server_list, swarm_join_token)
 
         # create docker-compose.yml
-        create_docker_compose(instance4['addr'])
+        create_docker_compose(instance1['addr'], instance4['addr'])
 
         # setup docker compose
         setup_docker_compose(instance1)
@@ -364,6 +383,7 @@ def deploy_all():
     except Exception as err:
         print(f"ERROR: {err}")
 
+# update the source code in the instances
 def update_app():
     try:
         conn = create_connection(os.getenv('OS_AUTH_URL'),os.getenv('OS_PROJECT_NAME'), os.getenv('OS_USERNAME'),os.getenv('OS_PASSWORD_INPUT'),os.getenv('OS_REGION_NAME'),os.getenv('OS_USER_DOMAIN_NAME'),os.getenv('OS_PROJECT_DOMAIN_ID'),os.getenv('OS_PROJECT_NAME'),os.getenv('OS_IDENTITY_API_VERSION'))
@@ -380,6 +400,8 @@ def update_app():
         create_config_file(server_list)
         create_constants_file(server_list)
         create_harvester_docker_compose(server_list['instance4']['addr'])
+        create_init_env_local(server_list['instance1']['addr'])
+        create_docker_compose(server_list['instance1']['addr'], server_list['instance4']['addr'])
 
         copyfile("config.json", "frontend/config.json")
         copyfile("config.json", "services/config.json")
@@ -396,32 +418,6 @@ def update_app():
         print(f"Instance 3 ip address:", os.environ["INSTANCE3"])
         print(f"Instance 4 ip address:", os.environ["INSTANCE4"])
         
-        # # setup couchdb
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance3 ubuntu@{instance3_addr} sudo rm -r database/ ")
-        # execute_command(f"scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance3 -r database/ ubuntu@{instance3_addr}:database/ ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance3 ubuntu@{instance3_addr} 'bash -s' < ./database/setup_workerdb1.sh ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo rm -r database/ ")
-        # execute_command(f"scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 -r database/ ubuntu@{instance4_addr}:database/ ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} 'bash -s' < ./database/setup_masterdb.sh ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} npm --prefix ./database/ install ./database/ ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} grunt --gruntfile ./database/Gruntfile.js couch-compile ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} grunt --gruntfile ./database/Gruntfile.js couch-push ")
-        
-        # # setup harvesters app
-        # execute_command(f"scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 -r harvesters/ ubuntu@{instance4_addr}:harvesters/ ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo docker-compose -f harvesters/docker-compose.yml build ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo docker-compose -f harvesters/docker-compose.yml pull ")
-        # execute_command(f"ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@{instance4_addr} sudo docker-compose -f harvesters/docker-compose.yml up --force-recreate --build -d")
-
-        # # build frontend and service image
-        # execute_command(f"docker-compose build ")
-        # execute_command(f"docker-compose push ")
-
-        # # setup frontend and service docker app
-        # execute_command(f"ssh -i keypairs/keypair-instance1 ubuntu@{instance1_addr} sudo rm docker-compose.yml ")
-        # execute_command(f"scp -i keypairs/keypair-instance1 docker-compose.yml ubuntu@{instance1_addr}:docker-compose.yml ")
-        # execute_command(f"ssh -i keypairs/keypair-instance1 ubuntu@{instance1_addr} sudo docker stack deploy comp90024 -c docker-compose.yml ")
-
         sp.call("./run_deploy_source.sh", shell=True)
 
     except Exception as err:

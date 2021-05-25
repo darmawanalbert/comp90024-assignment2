@@ -2,3 +2,6 @@ venv/
 keypairs/
 database/_pycache_
 harvesters/_pycache_
+services/_pycache_
+services/venv
+notes.txt

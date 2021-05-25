@@ -1,9 +1,9 @@
 # COMP90024 Team 1
-# Albert Darmawan (1168452) - darmawana@student.unimelb.edu.au
-# Clarisca Lawrencia (1152594) - clawrencia@student.unimelb.edu.au
-# I Gede Wibawa Cakramurti (1047538) - icakramurti@student.unimelb.edu.au
-# Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
-# Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
+# Albert, Darmawan (1168452) - Jakarta, ID - darmawana@student.unimelb.edu.au
+# Clarisca, Lawrencia (1152594) - Melbourne, AU - clawrencia@student.unimelb.edu.au
+# I Gede Wibawa, Cakramurti (1047538) - Melbourne, AU - icakramurti@student.unimelb.edu.au
+# Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
+# Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
 
 version: "3.7"  # optional since v1.27.0
 services:
@@ -16,8 +16,9 @@ services:
             mode: replicated
             replicas: 2
         environment:
-            DBNAME: testdb
-            DBHOST: http://admin:admin@45.113.235.136:15984/
+            DB_NAME_LDA: comp90024_lda_scoring/
+            DBHOST: http://admin:admin@45.113.233.242/database/
+            PORT: 8080
         ports:
             - "8080:8080"
         networks:
@@ -34,16 +35,15 @@ services:
             - "81:3000"
         networks:
             - net
-    harvester:
+    classifier:
         build:
             context: . 
-            dockerfile: ./harvester.Dockerfile
-        image: wildananugrah/harvester
-        command: python -u /app/app.py
+            dockerfile: ./classifier.Dockerfile
+        image: wildananugrah/classifier
+        command: python -u topic_classifier.py
         environment:
-            DBNAME: testdb
-            DBHOST: "http://admin:admin@45.113.235.136:15984/"
-            QUERY: jokowi
+            DB_NAME: comp90024_lda_scoring
+            ADDRESS: "http://admin:admin@45.113.234.151:15984"
         labels:
             - "swarm.cronjob.enable=true"
             - "swarm.cronjob.schedule=* * * * *"

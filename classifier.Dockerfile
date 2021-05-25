@@ -7,8 +7,16 @@
 
 FROM python:3.8
 
-COPY harvesters/ /app/
+WORKDIR /app
 
-RUN pip install -r /app/requirements.txt
+COPY classifier/ .
 
-CMD ["python","-u","/app/app.py"]
+RUN pip install -r requirements.txt
+
+CMD ["python","-u","topic_classifier.py"]
+
+# docker build -t test -f classifier.Dockerfile .
+# docker container create --name test test:latest
+# docker start test
+# docker rm -vf $(docker ps -a -q) ; docker rmi -f $(docker images -a -q)
+# docker rmi -f $(docker images -a -q)
