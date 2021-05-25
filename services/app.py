@@ -29,8 +29,6 @@ DESIGN_LDA = "_design/lda_topic/"
 VIEW_LDA = "_view/score_output"
 # End of database constant declaration
 
-# url = f"http://admin:admin@45.113.235.226/database/comp90024_lda_scoring/_design/lda_topic/_view/score_output"
-
 # Start of functions
 # Start of endpoints, three in total
 # Retrieves geojson for top 50 cities

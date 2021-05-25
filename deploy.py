@@ -5,6 +5,10 @@
 # Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
 # Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
 
+# DEPLOYMENT TOOLS
+# Option 1: Running all deployment. Destroy all instances, keypairs and security groups in the MRC, then re-create the instance, installing the apps, and deploy 
+# Option 2: Deploy the source code only. 
+
 import openstack
 import os, shutil
 import time
@@ -62,9 +66,9 @@ def execute_command(command_bash):
 
 def delete_all_instances(conn):
     for server in conn.compute.servers():
-        while True: # magic happens here.
+        while True: .
             try:
-                print(f"Deleting {server.name} ") # magic happens here.
+                print(f"Deleting {server.name} ") .
                 time.sleep(5)
                 conn.compute.delete_server(server)
             except Exception as err:
@@ -74,9 +78,9 @@ def delete_all_instances(conn):
 
 def delete_key_pairs(conn):
     for keypair in conn.compute.keypairs():
-        while True: # magic happens here.
+        while True: .
             try:
-                print(f"Deleting {keypair.name} ") # magic happens here.
+                print(f"Deleting {keypair.name} ") .
                 time.sleep(5)
                 conn.compute.delete_keypair(keypair)
             except Exception as err:
@@ -120,9 +124,9 @@ def get_security_group_name(conn):
 
 def create_instance(server_name_list, conn):
     for server in server_name_list:
-        while True: # magic happens here.
+        while True: .
             try:
-                print("Sleeping for 5s ") # magic happens here.
+                print("Sleeping for 5s ") .
                 time.sleep(5)
                 print(f"server {server['name']} processed..")
                 flavor = conn.compute.find_flavor(server['flavor'])
@@ -142,12 +146,12 @@ def create_instance(server_name_list, conn):
 def setup_docker(conn):
     server_list = {}
     for server in conn.compute.servers():
-        while True: # magic happens here.
+        while True: .
             try:
-                print("Sleeping for 5s ") # magic happens here.
+                print("Sleeping for 5s ") .
                 time.sleep(5)
                 print(f"name: {server.name} addr: {server.addresses[NETWORK_NAME][0]['addr']}, docker installing..")
-                server_address = server.addresses[NETWORK_NAME][0]['addr'] + "," # magic happens here.
+                server_address = server.addresses[NETWORK_NAME][0]['addr'] + "," .
                 command_bash = f"ansible-playbook {CREATE_INSTANCE_YML} -u ubuntu -i {server_address} --private-key {FOLDER_NAME}keypair-{server.name}"
                 result = sp.Popen(command_bash.split(), stdout=sp.PIPE)
                 output, error = result.communicate()
@@ -333,6 +337,7 @@ def create_config_file(server_list):
     fout.write(json.dumps(server_list))
     fout.close()    
 
+# destroy all instances, security groups and keypairs then re-create the instances, security groups and keypairs
 def deploy_all():
     try:
         conn = create_connection(os.getenv('OS_AUTH_URL'),os.getenv('OS_PROJECT_NAME'), os.getenv('OS_USERNAME'),os.getenv('OS_PASSWORD_INPUT'),os.getenv('OS_REGION_NAME'),os.getenv('OS_USER_DOMAIN_NAME'),os.getenv('OS_PROJECT_DOMAIN_ID'),os.getenv('OS_PROJECT_NAME'),os.getenv('OS_IDENTITY_API_VERSION'))
@@ -378,6 +383,7 @@ def deploy_all():
     except Exception as err:
         print(f"ERROR: {err}")
 
+# update the source code in the instances
 def update_app():
     try:
         conn = create_connection(os.getenv('OS_AUTH_URL'),os.getenv('OS_PROJECT_NAME'), os.getenv('OS_USERNAME'),os.getenv('OS_PASSWORD_INPUT'),os.getenv('OS_REGION_NAME'),os.getenv('OS_USER_DOMAIN_NAME'),os.getenv('OS_PROJECT_DOMAIN_ID'),os.getenv('OS_PROJECT_NAME'),os.getenv('OS_IDENTITY_API_VERSION'))
