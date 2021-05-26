@@ -32,7 +32,13 @@ with open(AURIN_FILE, 'r') as af:
 
 # Store the data using PUT method
 headers = {"content-type": "application/json"}
-url = "http://admin:admin@45.113.234.151:15984/comp90024_aurin_statistics/" + AURIN_FILE_ID
+user = "mask"
+password = "mask"
+ipaddress = "mask"
+port = "mask"
+db = "mask"
+
+url = "http://{}:{}@{}:{}/{}/".format(user, password, ipaddress, port, db) + AURIN_FILE_ID
 data = json.dumps(aurin_dict).encode('utf-8')
 
 req_status = requests.put(url, data=data, headers=headers)
