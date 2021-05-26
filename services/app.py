@@ -142,6 +142,8 @@ def raw_lda(req_params):
     headers = {"content-type": "application/json"}
     url = f"{DB_HOST}{DB_NAME_LDA}{DESIGN_LDA}{VIEW_LDA}"
 
+    print(f"URL: {url}")
+
     data = json.dumps(req_params).encode('utf-8')
 
     scoring_data = requests.post(url, data=data, headers=headers)

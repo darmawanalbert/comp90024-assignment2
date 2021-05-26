@@ -1,16 +1,15 @@
 # COMP90024 Team 1
-# Albert Darmawan (1168452) - darmawana@student.unimelb.edu.au
-# Clarisca Lawrencia (1152594) - clawrencia@student.unimelb.edu.au
-# I Gede Wibawa Cakramurti (1047538) - icakramurti@student.unimelb.edu.au
-# Nuvi Anggaresti (830683) - nanggaresti@student.unimelb.edu.au
-# Wildan Anugrah Putra (1191132) - wildananugra@student.unimelb.edu.au
+# Albert, Darmawan (1168452) - Jakarta, ID - darmawana@student.unimelb.edu.au
+# Clarisca, Lawrencia (1152594) - Melbourne, AU - clawrencia@student.unimelb.edu.au
+# I Gede Wibawa, Cakramurti (1047538) - Melbourne, AU - icakramurti@student.unimelb.edu.au
+# Nuvi, Anggaresti (830683) - Melbourne, AU - nanggaresti@student.unimelb.edu.au
+# Wildan Anugrah, Putra (1191132) - Jakarta, ID - wildananugra@student.unimelb.edu.au
 
-# remove all container in local machine
-# docker container stop $(docker container ls -aq)
-# docker container rm $(docker container ls -aq)
-
-# remove all image in local machine
-# docker image rm $(docker images -aq)
+# make sure keypair can be run
+chmod 400 keypairs/keypair-instance1
+chmod 400 keypairs/keypair-instance2
+chmod 400 keypairs/keypair-instance3
+chmod 400 keypairs/keypair-instance4
 
 # build new images
 docker-compose build
@@ -46,8 +45,8 @@ ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 
 chmod 400 keypairs/keypair-instance4
 # ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo rm -r harvesters/
 scp -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 harvesters/docker-compose.yml ubuntu@$INSTANCE4:harvesters.docker-compose.yml
-ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo docker-compose -f harvesters.docker-compose.yml pull
-# ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo docker-compose -f harvesters.docker-compose.yml push
+ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo docker pull wildananugrah/twitter_search
+ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo docker pull wildananugrah/twitter_collect
 ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo docker-compose -f harvesters.docker-compose.yml down
 ssh -o StrictHostKeyChecking=no -i keypairs/keypair-instance4 ubuntu@$INSTANCE4 sudo docker-compose -f harvesters.docker-compose.yml up -d
 
